@@ -43,8 +43,7 @@ app.post('/firmLogin', function (req, res) {
 // routes 
 const test = require('./routes/test')
 app.use('/test',test)
-//http://localhost:3001/test/try-db
 
 app.listen(3002, function () {
-    console.log('port 3002 listen')
+    console.log('nodeJS started on port 3002')
 })
