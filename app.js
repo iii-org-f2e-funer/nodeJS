@@ -2,13 +2,15 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const multer = require('multer')
-const app = express()
+
 const url = require('url')
+
+const app = express()
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
-var whitelist = ['http://localhost:3000']
+var whitelist = ['http://localhost:3000', undefined, 'http://localhost:3001']
 var corsOptions = {
     credentials: true,
     origin: function (origin, callback) {
@@ -19,10 +21,11 @@ var corsOptions = {
         }
     }
 }
-
 app.use(cors(corsOptions))
 
-const session = require('express-session');
+const upload = multer({dest: '/public/tmp_uploads/'})
+
+const session = require('express-session')
 app.use(session({
     saveUninitialized: false,
     resave: false,
@@ -33,7 +36,6 @@ app.use(session({
 app.get('/', function (req, res) {
     res.send("hello")
 })
-
 app.post('/firmLogin', function (req, res) {
     res.json({
         message: 'success login',
@@ -41,6 +43,11 @@ app.post('/firmLogin', function (req, res) {
     })
 })
 
-app.listen(3001, function () {
-    console.log('port 3001 listen')
+// routes 
+const test = require('./routes/test')
+app.use('/test',test)
+//http://localhost:3001/test/try-db
+
+app.listen(3002, function () {
+    console.log('port 3002 listen')
 })
