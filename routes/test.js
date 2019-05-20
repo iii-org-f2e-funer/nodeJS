@@ -11,14 +11,10 @@ const mysql = require('mysql')
 // db.connect();
 
 router.get('/', (req, res) => {
-    res.json({
-        str: "GET"
-    });
+    res.send("localhost:3002/test")
 });
 router.post('/post', (req, res) => {
-    res.json({
-        str: "POST"
-    });
+    res.send(req.body)
 });
 
 // router.get('/try-db', (req, res)=>{

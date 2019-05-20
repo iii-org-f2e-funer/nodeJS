@@ -2,7 +2,6 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const multer = require('multer')
-
 const url = require('url')
 
 const app = express()
@@ -10,7 +9,7 @@ const app = express()
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
-var whitelist = ['http://localhost:3000', undefined, 'http://localhost:3001']
+var whitelist = ['http://localhost:3000', undefined, 'http://localhost:3002']
 var corsOptions = {
     credentials: true,
     origin: function (origin, callback) {
@@ -22,8 +21,6 @@ var corsOptions = {
     }
 }
 app.use(cors(corsOptions))
-
-const upload = multer({dest: '/public/tmp_uploads/'})
 
 const session = require('express-session')
 app.use(session({
