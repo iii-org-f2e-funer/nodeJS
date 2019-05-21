@@ -17,7 +17,7 @@ const db=mysql.createConnection({
       console.log('error connecting: ' + err.stack)
       return
     }
-    console.log('connected as id ' + db.threadId);
+    console.log('連線成功--connected as id ' + db.threadId);
   });
   bluebird.promisifyAll(db);
 
