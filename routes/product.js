@@ -24,13 +24,13 @@ router.post('/post', (req, res) => {
 });
 
 router.get('/try-db', (req, res) => {
-    let sql = "SELECT * FROM `product_manage`"
+    let sql = "SELECT * FROM `product_manage`ORDER BY sid desc"
     db.query(sql, (error, results, fields) => {
-        console.log(results)
-        res.send(results);
+        res.json(results);
     });
 
 });
 
 
 module.exports = router;
+// SELECT product_manage.*, product_manages.`product_id` FROM product_manage left JOIN product_manages ON product_manage.`sid`= product_manage_images.`product_id` where `firmname` like '%%%s%%' ORDER BY sid desc LIMIT %s, %s"
