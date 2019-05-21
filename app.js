@@ -44,7 +44,9 @@ app.use(
     cookie: { maxAge: 1000 * 60 * 60 * 24 * 30 }, //30天
   })
 )
-
+//product
+const product = require('./routes/product')
+app.use('/product', product)
 // routes
 const test = require('./routes/test')
 app.use('/test', test)
@@ -52,9 +54,6 @@ app.use('/test', test)
 // firm
 const firm = require('./routes/firm')
 app.use('/firm', firm)
-
-const product = require('./routes/product')
-app.use('/product', product)
 
 app.listen(3002, function() {
   console.log('nodeJS started on port 3002')
