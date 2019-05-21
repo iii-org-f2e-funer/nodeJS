@@ -53,6 +53,11 @@ app.use('/test', test)
 const firm = require('./routes/firm')
 app.use('/firm', firm)
 
+//chatroom
+
+const chatroom=require("./routes/chatroom")
+app.use("/chatroom",chatroom)
+
 app.listen(3002, function() {
   console.log('nodeJS started on port 3002')
 })
