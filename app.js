@@ -44,6 +44,9 @@ app.use(
     cookie: { maxAge: 1000 * 60 * 60 * 24 * 30 }, //30天
   })
 )
+//product
+const product = require('./routes/product')
+app.use('/product', product)
 
 // firm
 const firm = require('./routes/firm')
