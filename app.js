@@ -52,6 +52,10 @@ app.use('/product', product)
 const firm = require('./routes/firm')
 app.use('/firm', firm)
 
+//chatroom
+const chatroom=require("./routes/chatroom")
+app.use("/chatroom",chatroom)
+
 // routes
 const test = require('./routes/test')
 app.use('/test', test)
