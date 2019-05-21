@@ -53,6 +53,9 @@ app.use('/test', test)
 const firm = require('./routes/firm')
 app.use('/firm', firm)
 
+const product = require('./routes/product')
+app.use('/product', product)
+
 app.listen(3002, function() {
   console.log('nodeJS started on port 3002')
 })
