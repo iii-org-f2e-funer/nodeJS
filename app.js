@@ -7,20 +7,17 @@ const mysql = require('mysql')
 const session = require('express-session')
 const cookieParser = require('cookie-parser')
 const app = express()
+const db_config = require('./datebase_config.js')
+const db = mysql.createConnection(db_config)
 
-
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'happy6',
-})
-
-
+app.use(express.static('public'));
 // Error handling
 db.connect(error => {
   if (error) {
     console.log('MySQL連線失敗 Error: ' + error.code)
+  }
+  else {
+    console.log('Good!! MySQL Connection successful')
   }
 })
 
@@ -60,9 +57,16 @@ app.use('/product', product)
 const firm = require('./routes/firm')
 app.use('/firm', firm)
 
-// routes
-const test = require('./routes/test')
-app.use('/test', test)
+//chatroom
+const chatroom = require("./routes/chatroom")
+app.use("/chatroom", chatroom)
+
+// instagram
+const instagram = require('./routes/instagram')
+app.use('/instagram', instagram)
+
+const gameMap = require("./routes/gameMap")
+app.use("/gameMap", gameMap)
 
 app.listen(3002, function () {
   console.log('nodeJS started on port 3002')
