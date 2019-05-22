@@ -1,19 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const mysql = require('mysql')
+const db_config = require('../datebase_config.js')
+const db = mysql.createConnection(db_config)
 
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'happy6'
-});
 // Error handling
-db.connect((error) => {
-    if (error) {
-        console.log('MySQL連線失敗 Error: ' + error.code)
-    }
-});
+db.connect(error => {
+  if (error) {
+    console.log('MySQL連線失敗 Error: ' + error.code)
+  }
+  else{
+    console.log('Good!! MySQL Connection successful')
+  }
+})
 
 
 router.get('/', (req, res) => {
