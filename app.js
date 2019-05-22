@@ -60,6 +60,9 @@ app.use("/chatroom",chatroom)
 const instagram = require('./routes/instagram')
 app.use('/instagram', instagram)
 
+const gameMap=require("./routes/gameMap")
+app.use("/gameMap",gameMap)
+
 app.listen(3002, function() {
   console.log('nodeJS started on port 3002')
 })
