@@ -9,6 +9,7 @@ const app = express()
 const router = express.Router()
 
 
+
 const db_config = require('../datebase_config.js')
 const db = mysql.createConnection(db_config)
 const cityCodeToString =require('./gameMapSql.js')
@@ -21,6 +22,7 @@ db.connect(error => {
         console.log('Good!! MySQL Connection successful')
     }
 })
+
 
 
 
@@ -71,16 +73,46 @@ router.get('/img/:sid', (req, res) => {
     console.log(results)
     let imgArray=[];
     if(results){
-        results.forEach(function (image_path , index) {
+        results.forEach(function (value, index) {
             imgArray.push(results[index]['image_path'])
-    })}
+        })
+    }
 
-    // res.json(results);
-      res.json({"imgArray":imgArray});
+    res.json(results);
+    //   res.json({"imgArray":imgArray});
     })
 });
 
+
+
+router.get('/All', (req, res) => {
+
+    
+        let sql = "SELECT * FROM `site_manage"
+        db.query(sql,(error, results, fields) => {
+                let newArray=[];
+                results.forEach(function(value,index){
+                        let img_sid=results[index]['sid']
+                        let img_sql = "SELECT site_manage.* , site_image.* FROM `site_manage` LEFT JOIN `site_image` ON site_manage.sid= site_image.site_id where `site_id`=(?)"
+                        db.query(img_sql ,img_sid,(error2, results2, fields2) => {
+                                let imgArray=[];
+                                if(results2){
+                                        results2.forEach(function (value, index) {
+                                        imgArray.push(results2[index]['image_path'])
+                                        })
+                                }
+                                results[index]['imageArray']=imgArray
+                                console.log(results[index])
+                                newArray.push(results[index])
+                                console.log('process....')
+                        })
+                }) ;
+                console.log('finish')
+         })
+});
 module.exports = router
+
+
 
 
 
