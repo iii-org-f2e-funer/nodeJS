@@ -63,12 +63,20 @@ router.get('/img/', (req, res) => {
 
 router.get('/img/:sid', (req, res) => {
     if (req.params.sid){ sid = req.params.sid }
-    let sql = "SELECT * FROM `site_image` WHERE `site_id`= (?)"
-    if (req.params.sid){ sid = req.params.sid }
-    // let sql = "SELECT site_manage.* , site_image.* FROM `site_manage` LEFT JOIN `site_image` ON site_manage.sid= site_image.site_id where `county`=(?)"
+    // let sql = "SELECT * FROM `site_image` WHERE `site_id`= (?)"
+    // if (req.params.sid){ sid = req.params.sid }
+    let sql = "SELECT site_manage.* , site_image.* FROM `site_manage` LEFT JOIN `site_image` ON site_manage.sid= site_image.site_id where `site_id`=(?)"
     db.query(sql,[sid],(error, results, fields) => {
     if (error) {console.log(error)}
-    res.json(results);
+    console.log(results)
+    let imgArray=[];
+    if(results){
+        results.forEach(function (image_path , index) {
+            imgArray.push(results[index]['image_path'])
+    })}
+
+    // res.json(results);
+      res.json({"imgArray":imgArray});
     })
 });
 
