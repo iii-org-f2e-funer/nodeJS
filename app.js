@@ -56,9 +56,9 @@ app.use('/firm', firm)
 const chatroom=require("./routes/chatroom")
 app.use("/chatroom",chatroom)
 
-// routes
-const test = require('./routes/test')
-app.use('/test', test)
+// instagram
+const instagram = require('./routes/instagram')
+app.use('/instagram', instagram)
 
 app.listen(3002, function() {
   console.log('nodeJS started on port 3002')
