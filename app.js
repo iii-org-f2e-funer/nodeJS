@@ -6,10 +6,10 @@ const url = require('url')
 const mysql = require('mysql')
 const session = require('express-session')
 const app = express()
-
 const db_config = require('./datebase_config.js')
 const db = mysql.createConnection(db_config)
 
+app.use(express.static('public'));
 // Error handling
 db.connect(error => {
   if (error) {
