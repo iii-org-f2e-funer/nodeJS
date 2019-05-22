@@ -7,16 +7,16 @@ const mysql = require('mysql')
 const session = require('express-session')
 const app = express()
 
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'happy6',
-})
+const db_config = require('./datebase_config.js')
+const db = mysql.createConnection(db_config)
+
 // Error handling
 db.connect(error => {
   if (error) {
     console.log('MySQL連線失敗 Error: ' + error.code)
+  }
+  else{
+    console.log('Good!! MySQL Connection successful')
   }
 })
 
