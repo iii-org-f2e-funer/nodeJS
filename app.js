@@ -5,7 +5,9 @@ const multer = require('multer')
 const url = require('url')
 const mysql = require('mysql')
 const session = require('express-session')
+const cookieParser = require('cookie-parser')
 const app = express()
+
 
 const db = mysql.createConnection({
   host: 'localhost',
@@ -13,6 +15,8 @@ const db = mysql.createConnection({
   password: '',
   database: 'happy6',
 })
+
+
 // Error handling
 db.connect(error => {
   if (error) {
@@ -20,13 +24,15 @@ db.connect(error => {
   }
 })
 
+
+app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 var whitelist = ['http://localhost:3000', undefined, 'http://localhost:3002']
 var corsOptions = {
   credentials: true,
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     if (whitelist.indexOf(origin) !== -1 || !origin) {
       callback(null, true)
     } else {
@@ -41,9 +47,11 @@ app.use(
     saveUninitialized: false,
     resave: false,
     secret: 'happy6',
+    key: 'auth_token', //cookie name
     cookie: { maxAge: 1000 * 60 * 60 * 24 * 30 }, //30天
   })
 )
+
 //product
 const product = require('./routes/product')
 app.use('/product', product)
@@ -56,6 +64,6 @@ app.use('/firm', firm)
 const test = require('./routes/test')
 app.use('/test', test)
 
-app.listen(3002, function() {
+app.listen(3002, function () {
   console.log('nodeJS started on port 3002')
 })
