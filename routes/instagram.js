@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const mysql = require('mysql')
+const multer = require('multer');
+const mysql = require('mysql');
 
 const db = mysql.createConnection({
     host: 'localhost',
@@ -8,28 +9,48 @@ const db = mysql.createConnection({
     password: '',
     database: 'happy6'
 });
-// Error handling
-db.connect((error) => {
-    if (error) {
-        console.log('MySQL連線失敗 Error: ' + error.code)
-    }
-});
 
+const storage = multer.diskStorage({
+    // 資料夾
+    destination: function (req, file, cb) {
+        cb(null, 'public/images')
+    },
+    // 新檔名
+    filename: function (req, file, cb) {
+        //   cb(null, file.fieldname + '-' + Date.now())
+        cb(null, Date.now() + '.' + file.originalname.split('.')[1])
+    }
+})
+const upload = multer({ storage: storage })
 
 router.get('/', (req, res) => {
-    res.send("Hello")
-});
-router.post('/post', (req, res) => {
-    res.send(req.body)
+    res.send("Hello Instagram")
 });
 
-router.get('/try-db', (req, res) => {
-    let sql = "SELECT * FROM `member` WHERE member_id = 1"
-    db.query(sql, (error, results, fields) => {
-        res.json(results)
+// 新增貼文
+router.post('/newStory', upload.array('photos'), (req, res) => {
+    // req.body.memberID
+    // req.body.content
+    // photos_filename
+    var photos_filename = req.files.map(item => (item.filename)).join();
+
+    // connect to MySQL DB 
+    db.connect((error) => {
+        if (error) {
+            console.log('MySQL連線失敗 Error: ' + error.code)
+        }
     });
-
+    // query
+    var sql = "INSERT INTO `instagram_stories`(`member_id`, `content`, `photos`) VALUES (?,?,?)";
+    db.query(sql, [req.body.memberID, req.body.content, photos_filename], (error, results, fields) => {
+        if (!error) {
+            res.json({ success: true })
+        } else {
+            res.json({ success: false })
+        }
+    });
 });
+
 
 
 module.exports = router;
