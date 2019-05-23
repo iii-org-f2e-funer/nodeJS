@@ -58,7 +58,7 @@ const firm = require('./routes/firm');
 app.use('/firm', firm);
 
 //chatroom
-const chatroom = require('./routes/chatroom');
+const chatroom = require('./routes/chatroom_socket');
 app.use('/chatroom', chatroom);
 
 // instagram

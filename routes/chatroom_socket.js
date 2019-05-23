@@ -3,7 +3,39 @@ var express = require('express');
 const router=express.Router();
 const mysql=require("mysql");
 const bluebird=require("bluebird");
+var app = require('express')();
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 
+//連接socket io
+server.listen(8080, () => {
+    console.log(new Date() + 'Socket.io Successfully connect to port 8080');
+  });
+
+  //socket io 後台資料處理
+  io.on('connection', function(socket) {
+    let id = socket.id;
+    console.log('socketID', id);
+    socket.on("join",data=>{
+        socket.join(data.privateRoomNum)
+    })
+    socket.on('newVisitor', function(data) {
+      let innerLoginData = { userName: '', id: id };
+      innerLoginData.userName = data;
+      outPut.loginData = [innerLoginData, ...outPut.loginData];
+      console.log(data);
+      socket.emit('newVisitor', data);
+      socket.broadcast.emit('newVisitor_all', data);
+      //boardcast 廣播給除了自己以外的其他人, io 廣播給所有人包含自己
+    });
+    socket.on('disconnect', () => {
+      var whoLeave = outPut.loginData.find(items => {
+        return items.id === id;
+      });
+      console.log(whoLeave.userName + ' just leave the room..');
+      socket.broadcast.emit('logout', whoLeave.userName);
+    });
+  });
 
 //連線資料庫
 const db=mysql.createConnection({
@@ -32,7 +64,7 @@ router.get("/message/user_id1",(req,res)=>{
       timeout: 40000, // 40s
       //values: ['David']
     }).then(data=> {
-      console.log(data);
+    //   console.log(data);
       res.json(data);
       // error will be an Error if one occurred during the query
       // results will contain the results of the query
