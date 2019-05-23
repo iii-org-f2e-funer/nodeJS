@@ -62,6 +62,10 @@ app.use('/chatroom', chatroom)
 const instagram = require('./routes/instagram')
 app.use('/instagram', instagram)
 
+// event
+const event = require('./routes/event')
+app.use('/event', event)
+
 const gameMap = require('./routes/gameMap')
 app.use('/gameMap', gameMap)
 
