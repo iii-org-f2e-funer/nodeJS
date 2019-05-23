@@ -46,10 +46,13 @@ router.post('/imgupload', upload.single('pt_img'),(req,res) =>{
                 name: req.body.name
             });
             return;
-
-
       }
     }
 })
+
+router.post('/newptsubmit',(req,res) =>{
+  console.log(req.body)
+})
+
 
 module.exports = router;
