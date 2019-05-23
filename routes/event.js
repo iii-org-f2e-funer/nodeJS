@@ -50,9 +50,30 @@ router.post('/imgupload', upload.single('pt_img'),(req,res) =>{
     }
 })
 
-router.post('/newptsubmit',(req,res) =>{
+router.post('/newptsubmit', upload.single(),(req,res) =>{
   console.log(req.body)
-})
+
+  let  sql = "INSERT INTO `party_manage`(`pt_host`, `pt_img`, `pt_member`, `pt_maxm`,`pt_time`, `pt_endtime`, `pt_city`, `pt_dist`, `pt_add`, `pt_title`, `pt_info`,`pt_level` ) VALUES (?,?,?,?,?,?,?,?,?,?,?,? )";
+
+    db.query(sql, [req.body.pt_host, 
+                    req.body.pt_img, 
+                    req.body.pt_member,
+                    req.body.pt_maxm,
+                    req.body.pt_time,
+                    req.body.pt_endtime,
+                    req.body.pt_city,
+                    req.body.pt_dist,
+                    req.body.pt_add,
+                    req.body.pt_title,
+                    req.body.pt_info,
+                    req.body.pt_level], (error, results, fields) => {
+      if (!error) {
+          res.json({ success: true })
+      } else {
+          res.json({ success: false })
+      }
+    })
+});
 
 
 module.exports = router;
