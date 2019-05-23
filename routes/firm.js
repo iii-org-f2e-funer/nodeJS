@@ -1,20 +1,14 @@
 const express = require('express')
 const router = express.Router()
 const mysql = require('mysql')
+const db_config = require('../datebase_config.js')
+const db = mysql.createConnection(db_config)
 
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'happy6',
-})
-
-var user = '';
-
-router.get('/userInfo', function (req, res) {
+router.get('/userInfo', function(req, res) {
+  console.log(req.session)
   const data = { success: false }
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
-  db.query(sql, [user], (error, results, fields) => {
+  db.query(sql, [req.session.user], (error, results, fields) => {
     if (results[0] === undefined) {
       res.json(data)
     } else {
@@ -25,8 +19,7 @@ router.get('/userInfo', function (req, res) {
   })
 })
 
-
-router.post('/firmLogin', function (req, res) {
+router.post('/firmLogin', function(req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
@@ -37,7 +30,8 @@ router.post('/firmLogin', function (req, res) {
       res.json({ data })
     }
     if (results[0].password === data.body.password) {
-      user = data.body.account
+      req.session.user = data.body.account
+      console.log(req.session)
       data.success = true
       data.message = '登入成功'
       res.json({ data })
@@ -48,31 +42,45 @@ router.post('/firmLogin', function (req, res) {
   })
 })
 
-router.post('/logOut', function (req, res) {
-  user = ''
-  res.json("成功登出")
+router.post('/logOut', function(req, res) {
+  req.session.destroy()
+  res.json('成功登出')
 })
 
-router.post('/firmRegister', function (req, res) {
+router.post('/firmRegister', function(req, res) {
   const registerTime = new Date()
   const data = { success: false, message: '' }
-  data.body = req.body
-  let sql = 'INSERT INTO `firm_manage`(	sid,account,password,firmname,uniform_number,cre_date) VALUES (?,?,?,?,?,?);'
-  let query = db.query(sql, [null, data.body.account, data.body.password, data.body.store, data.body.uniform, registerTime], (error, results, fields) => {
-    if (error) throw error
-    if (results.affectedRows === 1) {
-      data.success = true
-      data.message = '註冊成功，請至信箱驗證帳號'
-      res.json({ data })
-      return
-    } else {
-      data.message = '註冊失敗'
-      res.json({ data })
+  console.log(req.body)
+  let sql =
+    'INSERT INTO `firm_manage`(	sid,account,password,firmname,uniform_number,cre_date) VALUES (?,?,?,?,?,?);'
+  let query = db.query(
+    sql,
+    [
+      null,
+      req.body.account,
+      req.body.password,
+      req.body.store,
+      req.body.uniform,
+      registerTime,
+    ],
+    (error, results, fields) => {
+      if (error) throw error
+      if (results.affectedRows === 1) {
+        data.success = true
+        data.message = '註冊成功，請至信箱驗證帳號'
+        data.body = req.body
+        res.json({ data })
+        return
+      } else {
+        data.message = '註冊失敗'
+        res.json({ data })
+      }
     }
-  })
+  )
+  console.log(query)
 })
 
-router.post('/unicodeCheck', function (req, res) {
+router.post('/unicodeCheck', function(req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `uniform_number` = (?)'
@@ -92,7 +100,7 @@ router.post('/unicodeCheck', function (req, res) {
   })
 })
 
-router.post('/accountCheck', function (req, res) {
+router.post('/accountCheck', function(req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
@@ -111,6 +119,5 @@ router.post('/accountCheck', function (req, res) {
     }
   })
 })
-
 
 module.exports = router
