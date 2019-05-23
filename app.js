@@ -36,6 +36,8 @@ var corsOptions = {
 }
 app.use(cors(corsOptions))
 
+app.use(express.static('public'));
+
 app.use(
   session({
     saveUninitialized: false,
@@ -59,6 +61,10 @@ app.use("/chatroom",chatroom)
 // instagram
 const instagram = require('./routes/instagram')
 app.use('/instagram', instagram)
+
+// event
+const event = require('./routes/event')
+app.use('/event', event)
 
 app.listen(3002, function() {
   console.log('nodeJS started on port 3002')
