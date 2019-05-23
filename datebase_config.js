@@ -12,4 +12,4 @@ const db_config_local={
     database: 'happy6',
 }
 
-module.exports = db_config_local
+module.exports = db_config_remote
