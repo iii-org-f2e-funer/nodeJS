@@ -28,19 +28,90 @@ router.get('/', (req, res) => {
 	});
 });
 
+router.get('/sid/:sidCode', (req, res) => {
+	let sqlCityString = cityCodeToString(req.params.cityCode);
+	let isOk = false;
+	let sql = 'SELECT site_manage.* FROM `site_manage` where `sid`=(?)';
+	db.query(sql, [ req.params.sidCode ], (error, results, fields) => {
+		let newArray = [];
+
+		for (let index in results) {
+			let img_sid = results[index]['sid'];
+			let img_sql =
+				'SELECT site_manage.* , site_image.* FROM `site_manage` LEFT JOIN `site_image` ON site_manage.sid= site_image.site_id where `site_id`=(?)';
+			db.query(img_sql, img_sid, (error2, results2, fields2) => {
+				let imgArray = [];
+				if (results2) {
+					for (let index in results2) {
+						imgArray.push(results2[index]['image_path']);
+					}
+				}
+				results[index]['imageArray'] = imgArray;
+				newArray.push(results[index]);
+				console.log('process....');
+				if (newArray.length === results.length) {
+					console.log('finish');
+					res.json(newArray);
+				}
+			});
+		}
+	});
+
+	// let sqlCityString = cityCodeToString(req.params.cityCode);
+	// console.log(req.params);
+	// let sql = 'SELECT site_manage.* FROM `site_manage` where `county`=(?)';
+	// // let sql = "SELECT site_manage.* , site_image.* FROM `site_manage` LEFT JOIN `site_image` ON site_manage.sid= site_image.site_id where `county`=(?)"
+	// db.query(sql, [ sqlCityString ], (error, results, fields) => {
+	// 	if (error) {
+	// 		console.log(error);
+	// 	}
+	// 	console.log(results);
+
+	// 	res.json(results);
+	// });
+});
+
 router.get('/city/:cityCode?', (req, res) => {
 	let sqlCityString = cityCodeToString(req.params.cityCode);
-	console.log(req.params);
+	let isOk = false;
 	let sql = 'SELECT site_manage.* FROM `site_manage` where `county`=(?)';
-	// let sql = "SELECT site_manage.* , site_image.* FROM `site_manage` LEFT JOIN `site_image` ON site_manage.sid= site_image.site_id where `county`=(?)"
 	db.query(sql, [ sqlCityString ], (error, results, fields) => {
-		if (error) {
-			console.log(error);
-		}
-		console.log(results);
+		let newArray = [];
 
-		res.json(results);
+		for (let index in results) {
+			let img_sid = results[index]['sid'];
+			let img_sql =
+				'SELECT site_manage.* , site_image.* FROM `site_manage` LEFT JOIN `site_image` ON site_manage.sid= site_image.site_id where `site_id`=(?)';
+			db.query(img_sql, img_sid, (error2, results2, fields2) => {
+				let imgArray = [];
+				if (results2) {
+					for (let index in results2) {
+						imgArray.push(results2[index]['image_path']);
+					}
+				}
+				results[index]['imageArray'] = imgArray;
+				newArray.push(results[index]);
+				console.log('process....');
+				if (newArray.length === results.length) {
+					console.log('finish');
+					res.json(newArray);
+				}
+			});
+		}
 	});
+
+	// let sqlCityString = cityCodeToString(req.params.cityCode);
+	// console.log(req.params);
+	// let sql = 'SELECT site_manage.* FROM `site_manage` where `county`=(?)';
+	// // let sql = "SELECT site_manage.* , site_image.* FROM `site_manage` LEFT JOIN `site_image` ON site_manage.sid= site_image.site_id where `county`=(?)"
+	// db.query(sql, [ sqlCityString ], (error, results, fields) => {
+	// 	if (error) {
+	// 		console.log(error);
+	// 	}
+	// 	console.log(results);
+
+	// 	res.json(results);
+	// });
 });
 
 router.get('/img/', (req, res) => {
