@@ -1,23 +1,19 @@
 const express = require('express')
 const router = express.Router()
 const mysql = require('mysql')
-
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'happy6',
-})
-
-var user = '';
+const db_config = require('../datebase_config.js');
+const db = mysql.createConnection(db_config);
 
 router.get('/userInfo', function (req, res) {
-  const data = { success: false }
+  const data = { success: false, isFirm: false }
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
-  db.query(sql, [user], (error, results, fields) => {
+  db.query(sql, [req.session.user], (error, results, fields) => {
     if (results[0] === undefined) {
       res.json(data)
     } else {
+      if (req.session.isFirm) {
+        data.isFirm = true
+      }
       data.success = true
       data.body = results[0]
       res.json(data)
@@ -25,7 +21,7 @@ router.get('/userInfo', function (req, res) {
   })
 })
 
-
+//登入
 router.post('/firmLogin', function (req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
@@ -37,7 +33,8 @@ router.post('/firmLogin', function (req, res) {
       res.json({ data })
     }
     if (results[0].password === data.body.password) {
-      user = data.body.account
+      req.session.user = data.body.account
+      req.session.isFirm = true
       data.success = true
       data.message = '登入成功'
       res.json({ data })
@@ -49,10 +46,11 @@ router.post('/firmLogin', function (req, res) {
 })
 
 router.post('/logOut', function (req, res) {
-  user = ''
+  req.session.destroy()
   res.json("成功登出")
 })
 
+//註冊
 router.post('/firmRegister', function (req, res) {
   const registerTime = new Date()
   const data = { success: false, message: '' }
@@ -108,6 +106,51 @@ router.post('/accountCheck', function (req, res) {
       data.success = false
       res.json({ data })
       return
+    }
+  })
+})
+
+//帳號設定
+router.post('/firmEdit', function (req, res) {
+  const data = { success: false, message: '' }
+  let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
+  db.query(sql, [{
+    account: req.body.account,
+    firmname: req.body.firmname,
+    phone: req.body.phone,
+    city: req.body.city,
+    dist: req.body.dist,
+    address: req.body.address,
+    contacter: req.body.contacter,
+    email: req.body.email,
+  }, req.body.sid], (error, results, fields) => {
+    if (error) throw error
+    if (results.affectedRows === 1) {
+      data.success = true
+      data.body = req.body
+      data.message = '帳號資料修改成功'
+      res.json(data)
+    } else {
+      data.message = '修改失敗'
+      res.json(data)
+    }
+  })
+})
+router.post('/passwordEdit', function (req, res) {
+  const data = { success: false, message: '' }
+  let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
+  db.query(sql, [{
+    password: req.body.password,
+  }, req.body.sid], (error, results, fields) => {
+    if (error) throw error
+    if (results.affectedRows === 1) {
+      data.success = true
+      data.body = req.body
+      data.message = '帳號資料修改成功'
+      res.json(data)
+    } else {
+      data.message = '修改失敗'
+      res.json(data)
     }
   })
 })

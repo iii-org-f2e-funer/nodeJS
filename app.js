@@ -24,10 +24,10 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-var whitelist = [ 'http://localhost:3000', undefined, 'http://localhost:3002' ];
+var whitelist = ['http://localhost:3000', undefined, 'http://localhost:3002'];
 var corsOptions = {
 	credentials: true,
-	origin: function(origin, callback) {
+	origin: function (origin, callback) {
 		if (whitelist.indexOf(origin) !== -1 || !origin) {
 			callback(null, true);
 		} else {
@@ -72,6 +72,6 @@ app.use('/event', event);
 const gameMap = require('./routes/gameMap');
 app.use('/gameMap', gameMap);
 
-app.listen(3002, function() {
+app.listen(3002, function () {
 	console.log('nodeJS started on port 3002');
 });
