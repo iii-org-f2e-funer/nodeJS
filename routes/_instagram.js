@@ -1,13 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const db = require('./db')
+const mysql = require('mysql');
 
-// 上傳檔案設定
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'happy6'
+});
+
 const storage = multer.diskStorage({
+    // 資料夾
     destination: function (req, file, cb) {
         cb(null, 'public/images')
     },
+    // 新檔名
     filename: function (req, file, cb) {
         //   cb(null, file.fieldname + '-' + Date.now())
         cb(null, Date.now() + '.' + file.originalname.split('.')[1])
@@ -19,16 +27,41 @@ router.get('/', (req, res) => {
     res.send("Hello Instagram")
 });
 
+// 撈DB貼文
+router.get('/getStories', (req, res) => {
+    // connect to MySQL DB 
+    db.connect((error) => {
+        if (error) {
+            console.log('MySQL連線失敗 Error: ' + error.code)
+        }
+    });
+    // sql stories join member
+    var sql = "SELECT `instagram_stories`.*, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_stories` JOIN `member` WHERE  `instagram_stories`.`member_id` = `member`.`member_id`";
+    db.query(sql, (error, results, fields) => {
+        if (!error) {
+            for (let i = 0; i < results.length; i++) {
+                //圖片 str 還原成陣列
+                results[i].photos = results[i].photos.split(',');
+            }
+            // array.reverse() 最新的在前面
+            res.json(results.reverse());
+        }
+    });
+})
+
 // 新增貼文
 router.post('/newStory', upload.array('photos'), (req, res) => {
-    // req.body => { memberID: 1, content: 'Story'}
-    // req.files => [{}, {}, {}]
-    // req.files[0] => { fieldname: 'photos',originalname: '',encoding: '7bit',mimetype: 'image/png',destination: 'public/images',
-    //                   filename: '1558798020723.png',path: 'public\\images\\1558798020723.png',size: 2086488 }
-
-    // photo's filename to str  =>  "1558798020723.png,1558798020724.png,1558798020725.png"
+    // req.body.memberID
+    // req.body.content
+    // photos_filename
     var photos_filename = req.files.map(item => (item.filename)).join();
 
+    // connect to MySQL DB 
+    db.connect((error) => {
+        if (error) {
+            console.log('MySQL連線失敗 Error: ' + error.code)
+        }
+    });
     // query
     var sql = "INSERT INTO `instagram_stories`(`member_id`, `content`, `photos`) VALUES (?,?,?)";
     db.query(sql, [req.body.memberID, req.body.content, photos_filename], (error, results, fields) => {
@@ -40,10 +73,35 @@ router.post('/newStory', upload.array('photos'), (req, res) => {
     });
 });
 
+// 撈DB留言
+router.post('/getComments', (req, res) => {
+    // req.body.postID
+    // connect to MySQL DB 
+    db.connect((error) => {
+        if (error) {
+            console.log('MySQL連線失敗 Error: ' + error.code)
+        }
+    });
+    // sql stories join member
+    var sql = "SELECT `instagram_comments`.*, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_comments` JOIN `member` WHERE `post_id`= ? AND `instagram_comments`.`member_id` = `member`.`member_id`";
+    db.query(sql, req.body.postID, (error, results, fields) => {
+        if (!error) {
+            res.json({ success: true, data: results });
+        }
+    });
+})
+
 // 新增留言
 router.post('/newComment', (req, res) => {
-    // req.body => { postID: 46, userID: 1, content: 'comment Test' }
+    // console.log(req.body)
+    // { postID: 46, userID: 1, content: 'comment Test' }
 
+    // connect to MySQL DB 
+    db.connect((error) => {
+        if (error) {
+            console.log('MySQL連線失敗 Error: ' + error.code)
+        }
+    });
     // query
     var sql = "INSERT INTO `instagram_comments`(`post_id`, `member_id`, `content`) VALUES (?,?,?)";
     db.query(sql, [req.body.postID, req.body.userID, req.body.content], (error, results, fields) => {
@@ -58,8 +116,15 @@ router.post('/newComment', (req, res) => {
 
 // 新增留言的留言
 router.post('/newSubComment', (req, res) => {
+    // console.log(req.body)
     // { commentID: 9, userID: 1, content: 'test' }
 
+    // connect to MySQL DB 
+    db.connect((error) => {
+        if (error) {
+            console.log('MySQL連線失敗 Error: ' + error.code)
+        }
+    });
     // query
     var sql = "INSERT INTO `instagram_subcomments`(`comment_id`, `member_id`, `content`) VALUES (?,?,?)";
     db.query(sql, [req.body.commentID, req.body.userID, req.body.content], (error, results, fields) => {
@@ -72,18 +137,31 @@ router.post('/newSubComment', (req, res) => {
 
 });
 
-
-// SQL 撈貼文 JOIN 發文者暱稱、AVATAR
+// sql 
+// 撈 貼文
 // var sql = "SELECT `instagram_stories`.*, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_stories` JOIN `member` WHERE  `instagram_stories`.`member_id` = `member`.`member_id`";
+// 撈 留言
+// var sql = "SELECT `instagram_comments`.*, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_comments` JOIN `member` WHERE `instagram_comments`.`member_id` = `member`.`member_id`";
+// 撈 留言的留言
+//  var sql = "SELECT `instagram_subcomments`.*, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_subcomments` JOIN `member` WHERE `instagram_subcomments`.`member_id` = `member`.`member_id`";
 
 // get all Data
 router.get('/allData', (req, res) => {
-    // 整理全部data => json    
-    // 一個陣列 > 一個個貼文 > 貼文的留言 > 留言的留言
-    var data = [];
+    // console.log(req.body)
 
+
+    // { postID: 46, userID: 1, content: 'comment Test' }
+    var data = [];
+    // connect to MySQL DB 
+    db.connect((error) => {
+        if (error) {
+            console.log('MySQL連線失敗 Error: ' + error.code)
+        }
+    });
     // query
+
     // setp 1 : GET Stories
+    // var sql = "SELECT `instagram_stories`.*, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_stories` JOIN `member` WHERE  `instagram_stories`.`member_id` = `member`.`member_id`";
     var sql = "SELECT `instagram_stories`.*,UNIX_TIMESTAMP(`instagram_stories`.`post_time`) as post_time, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_stories` JOIN `member` WHERE `instagram_stories`.`member_id` = `member`.`member_id`"
     db.query(sql, (error, results, fields) => {
         if (!error) {
@@ -95,7 +173,8 @@ router.get('/allData', (req, res) => {
                 data[i].photos = data[i].photos.split(',');
                 data[i].comments = [];
             }
-            // setp 2 : GET Comments
+            // setp 2 : GET Comment
+            // var sql = "SELECT `instagram_comments`.*, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_comments` JOIN `member` WHERE `instagram_comments`.`member_id` = `member`.`member_id`";
             var sql = "SELECT `instagram_comments`.*,UNIX_TIMESTAMP(`instagram_comments`.`comment_time`) as comment_time, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_comments` JOIN `member` WHERE `instagram_comments`.`member_id` = `member`.`member_id`";
 
             db.query(sql, (error, results, fields) => {
@@ -111,7 +190,9 @@ router.get('/allData', (req, res) => {
                     }
 
                     // setp 3 : GET SubComments
+                    var sql = "SELECT `instagram_subcomments`.*, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_subcomments` JOIN `member` WHERE `instagram_subcomments`.`member_id` = `member`.`member_id`";
                     var sql = "SELECT `instagram_subcomments`.*,UNIX_TIMESTAMP(`instagram_subcomments`.`subcomment_time`) as subcomment_time, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_subcomments` JOIN `member` WHERE `instagram_subcomments`.`member_id` = `member`.`member_id`";
+
                     db.query(sql, (error, results, fields) => {
                         if (!error) {
                             // results -> SubComments
@@ -124,12 +205,13 @@ router.get('/allData', (req, res) => {
                                     }
                                 }
                             }
-                            // 最新貼文在第一個
+
                             res.json(data.reverse());
                         }
                     });
                 }
             });
+
 
 
         }
@@ -138,7 +220,6 @@ router.get('/allData', (req, res) => {
 
 });
 
-// 轉換時間格式
 function formatTime(timestamp) {
     const nowtime = Math.floor(+ new Date() / 1000)
     const t = nowtime - timestamp
@@ -162,4 +243,10 @@ function formatTime(timestamp) {
 }
 
 
+
+
+
+
 module.exports = router;
+
+// SELECT * FROM `instagram_stories` LEFT JOIN `instagram_comments` on `instagram_stories`.`post_id` = `instagram_comments`.`post_id` LEFT JOIN `instagram_subcomments` on `instagram_comments`.`comment_id` =  `instagram_subcomments`.`comment_id`
