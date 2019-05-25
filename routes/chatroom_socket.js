@@ -20,22 +20,22 @@ server.listen(8080, () => {
         socket.join(data)
         socket.emit("join",`chat in room`+data )
     })
-    socket.on('newVisitor', function(data) {
-      let innerLoginData = { userName: '', id: id };
-      innerLoginData.userName = data;
-      outPut.loginData = [innerLoginData, ...outPut.loginData];
-      console.log(data);
-      socket.emit('newVisitor', data);
-      socket.broadcast.emit('newVisitor_all', data);
-      //boardcast 廣播給除了自己以外的其他人, io 廣播給所有人包含自己
-    });
-    socket.on('disconnect', () => {
-      var whoLeave = outPut.loginData.find(items => {
-        return items.id === id;
-      });
-      console.log(whoLeave.userName + ' just leave the room..');
-      socket.broadcast.emit('logout', whoLeave.userName);
-    });
+    // socket.on('newVisitor', function(data) {
+    //   let innerLoginData = { userName: '', id: id };
+    //   innerLoginData.userName = data;
+    //   outPut.loginData = [innerLoginData, ...outPut.loginData];
+    //   console.log(data);
+    //   socket.emit('newVisitor', data);
+    //   socket.broadcast.emit('newVisitor_all', data);
+    //   //boardcast 廣播給除了自己以外的其他人, io 廣播給所有人包含自己
+    // });
+    // socket.on('disconnect', () => {
+    //   var whoLeave = outPut.loginData.find(items => {
+    //     return items.id === id;
+    //   });
+    //   console.log(whoLeave.userName + ' just leave the room..');
+    //   socket.broadcast.emit('logout', whoLeave.userName);
+    // });
   });
 
 //連線資料庫
