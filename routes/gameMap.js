@@ -178,4 +178,9 @@ router.get('/All', (req, res) => {
 		}
 	});
 });
+
+router.post('/reservation', (req, res) => {
+	res.json(req.body);
+});
+
 module.exports = router;
