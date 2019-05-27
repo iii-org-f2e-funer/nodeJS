@@ -3,6 +3,7 @@ var express = require('express');
 const router=express.Router();
 const mysql=require("mysql");
 const bluebird=require("bluebird");
+const moment=require("moment")
 var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
@@ -69,7 +70,11 @@ router.get("/message/:user_id",(req,res)=>{
       timeout: 40000, // 40s
       //values: ['David']
     }).then(data=> {
-    //   console.log(data);
+      data.map((ele,index,arr)=>{
+       arr[index].m_time=moment(ele.m_time).format('YYYY-MM-DD, hh:mm:ss')
+       arr[index].h_stime=moment(ele.h_stime).format('YYYY-MM-DD, hh:mm:ss')
+      })
+      console.log(data);
       res.json(data);
       // error will be an Error if one occurred during the query
       // results will contain the results of the query
