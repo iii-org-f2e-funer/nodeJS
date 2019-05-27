@@ -1,9 +1,11 @@
 const express = require('express')
 const router = express.Router()
-const db = require('./db2')
+const db = require('./db')
 const axios = require('axios')
+const nodemailer = require('nodemailer');
+const uuidv1 = require('uuid/v1');
 
-router.get('/userInfo', function(req, res) {
+router.get('/userInfo', function (req, res) {
   const data = { success: false, isFirm: false }
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
   db.query(sql, [req.session.user], (error, results, fields) => {
@@ -21,7 +23,7 @@ router.get('/userInfo', function(req, res) {
 })
 
 //登入
-router.post('/firmLogin', function(req, res) {
+router.post('/firmLogin', function (req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
@@ -45,24 +47,25 @@ router.post('/firmLogin', function(req, res) {
   })
 })
 
-router.post('/logOut', function(req, res) {
+router.post('/logOut', function (req, res) {
   req.session.destroy()
   res.json('成功登出')
 })
 
 //註冊
-router.post('/firmRegister', function(req, res) {
+router.post('/firmRegister', function (req, res) {
   const registerTime = new Date()
   const data = { success: false, message: '' }
-  console.log(req.body)
+  const code = uuidv1()
   let sql =
-    'INSERT INTO `firm_manage`(	sid,account,password,firmname,uniform_number,cre_date) VALUES (?,?,?,?,?,?);'
+    'INSERT INTO `firm_manage`(	sid,account,password,email,firmname,uniform_number,cre_date) VALUES (?,?,?,?,?,?,?);'
   let query = db.query(
     sql,
     [
       null,
       req.body.account,
       req.body.password,
+      req.body.email,
       req.body.store,
       req.body.uniform,
       registerTime,
@@ -73,6 +76,35 @@ router.post('/firmRegister', function(req, res) {
         data.success = true
         data.message = '註冊成功，請至信箱驗證帳號'
         data.body = req.body
+        var transporter = nodemailer.createTransport({
+          service: 'Gmail',
+          auth: {
+            user: 'gogofunner@gmail.com',
+            pass: 'qaz741WSX852'
+          }
+        })
+        //   {
+        //     code: String (uuid),  //激活码，格式自己定义
+        //     date: Number, //过期日期，过期后不能激活
+        //     islive: Boolean //判断是否激活
+        //    }
+        var options = {
+          //寄件者
+          from: 'gogofunner@gmail.com',
+          //收件者
+          to: req.body.email,
+          //主旨
+          subject: '歡迎使用funner', // Subject line
+          //嵌入 html 的內文
+          html: '<h2 style="font-weight: 400">您好</h2><h2 style="font-weight: 400">感謝您在FUNer上註冊帳號，請點擊連結啟用帳號，謝謝</h2 style="font-weight: 400"><a href="http://localhost:3000/checkCode?account=' + encodeURI(req.body.account) + '&code=' + code + '"><a/><h2 style="font-weight: 400">此郵件為FUNer平台所發送，若您未在FUNer註冊帳號，請忽略此郵件</h2><h2 style="font-weight: 400">FUNer團隊 敬上</h2>',
+        };
+        transporter.sendMail(options, function (error, info) {
+          if (error) {
+            console.log(error);
+          } else {
+            console.log('訊息發送: ' + info.response);
+          }
+        })
         res.json({ data })
         return
       } else {
@@ -83,8 +115,8 @@ router.post('/firmRegister', function(req, res) {
   )
   console.log(query)
 })
-
-router.post('/unicodeCheck', function(req, res) {
+// check
+router.post('/unicodeCheck', function (req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `uniform_number` = (?)'
@@ -104,14 +136,14 @@ router.post('/unicodeCheck', function(req, res) {
   })
 })
 
-router.post('/accountCheck', function(req, res) {
+router.post('/accountCheck', function (req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
   db.query(sql, [data.body.account], (error, results, fields) => {
     if (error) throw error
     if (results[0] === undefined) {
-      data.message = '此email無人註冊'
+      data.message = '此帳號無人註冊'
       data.success = true
       res.json({ data })
       return
@@ -124,8 +156,28 @@ router.post('/accountCheck', function(req, res) {
   })
 })
 
+router.post('/emailCheck', function (req, res) {
+  const data = { success: false, message: '' }
+  data.body = req.body
+  let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
+  db.query(sql, [data.body.email], (error, results, fields) => {
+    if (error) throw error
+    if (results[0] === undefined) {
+      data.message = '此email無人註冊'
+      data.success = true
+      res.json({ data })
+      return
+    } else {
+      data.message = '此email已被註冊'
+      data.success = false
+      res.json({ data })
+      return
+    }
+  })
+})
+
 //帳號設定
-router.post('/firmEdit', function(req, res) {
+router.post('/firmEdit', function (req, res) {
   const data = { success: false, message: '' }
   let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
   db.query(
@@ -157,7 +209,7 @@ router.post('/firmEdit', function(req, res) {
     }
   )
 })
-router.post('/passwordEdit', function(req, res) {
+router.post('/passwordEdit', function (req, res) {
   const data = { success: false, message: '' }
   let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
   db.query(
@@ -184,7 +236,7 @@ router.post('/passwordEdit', function(req, res) {
 })
 
 //廠商資料設定
-router.get('/firmInfo', function(req, res) {
+router.get('/firmInfo', function (req, res) {
   const data = { success: false, message: '' }
   let sql = 'SELECT * FROM `site_manage` WHERE `firm_id` = (?)'
   db.query(sql, [req.session.userSid], (error, results, fields) => {
@@ -215,7 +267,7 @@ router.get('/firmInfo', function(req, res) {
   })
 })
 //新增
-router.post('/insertAccount', function(req, res) {
+router.post('/insertAccount', function (req, res) {
   let url =
     'https://maps.googleapis.com/maps/api/geocode/json?address=' +
     encodeURI(req.body.county + req.body.dist + req.body.address) +
@@ -266,7 +318,7 @@ router.post('/insertAccount', function(req, res) {
     })
 })
 //更新
-router.post('/updateAccount', function(req, res) {
+router.post('/updateAccount', function (req, res) {
   let url =
     'https://maps.googleapis.com/maps/api/geocode/json?address=' +
     encodeURI(req.body.county + req.body.dist + req.body.address) +
