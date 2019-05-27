@@ -118,10 +118,45 @@ router.post('/ptinfo',function (req, res) {
   let sql = 'SELECT * FROM `party_manage` WHERE `pt_sid`=(?)';
 
   db.query(sql, [req.body.ptsid], (error, results, fields) => {
-    console.log(results)
-    res.json(results)
+    let pt_host = results[0].pt_host
+    // console.log(pt_host)
+    let membersql = 'SELECT `photo`, `name`, `nickname` FROM `member` WHERE `account` = (?)';
+      db.query(membersql,[pt_host],(error, results2, fields) =>{
+        results = Object.assign(results[0],results2[0])
+
+        res.json(results)
+      })
   })
 });
 
+//新增報名參團
+router.post('/apply',function (req, res) {
+// console.log(req.body)
+
+  let ptsid=req.body.pt_sid
+  let pthost=req.body.pt_host
+  let ptapplymem=req.body.pt_host
+  let applyresult = {success: false, errormsg:'',applyinfo:''}
+
+  let testsql = 'SELECT COUNT(1) FROM `party_apply` WHERE `pt_sid` = (?) AND `pt_applymember` = (?)'
+  db.query(testsql, [ptsid, 'testaccount7'], (error, results, fields) => {
+    // console.log(results[0]['COUNT(1)'])
+    if(results[0]['COUNT(1)'] == 0){
+      let sql ='INSERT INTO `party_apply`(`pt_sid`, `pt_host`, `pt_applymember`) VALUES (?,?,?)'
+          db.query(sql, [ptsid, pthost,'testaccount7'], (error, results, fields) => {
+            applyresult['success'] = true
+            applyresult['applyinfo'] = results
+            // console.log(applyresult)
+            return res.json(applyresult)
+        })
+    } else {
+      applyresult['errormsg'] = '你已經報名這個揪團過摟'
+      // console.log(applyresult)
+      return res.json(applyresult)
+    }
+})
+
+ 
+})
 
 module.exports = router;
