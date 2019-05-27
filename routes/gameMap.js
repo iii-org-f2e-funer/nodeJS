@@ -180,7 +180,18 @@ router.get('/All', (req, res) => {
 });
 
 router.post('/reservation', (req, res) => {
-	res.json(req.body);
+	let initData = [ req.body.name, req.body.phone, req.body.people, req.body.date, 'sampleremark' ];
+	initData.unshift(21047); /////////userID
+	let sql =
+		'INSERT INTO `site_reservation` ( `user_id`, `name`, `phone`, `peoples`, `date`, `remark`)  VALUES ( ?, ?, ?, ?, ?, ?);';
+	let query = db.query(sql, initData, (error, results, fields) => {
+		if (error) throw error;
+		if (results.affectedRows === 1) {
+			console.log(req.body);
+			res.send('ok');
+		} else {
+		}
+	});
 });
 
 module.exports = router;
