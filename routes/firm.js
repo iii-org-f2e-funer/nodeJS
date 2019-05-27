@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const db = require('./db2')
+const db = require('./db') // push前 改回去~
 const axios = require('axios')
 
 router.get('/userInfo', function(req, res) {

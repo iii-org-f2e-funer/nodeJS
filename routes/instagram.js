@@ -6,7 +6,7 @@ const db = require('./db')
 // 上傳檔案設定
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'public/images')
+        cb(null, './public/images')
     },
     filename: function (req, file, cb) {
         //   cb(null, file.fieldname + '-' + Date.now())
@@ -42,7 +42,7 @@ router.post('/newStory', upload.array('photos'), (req, res) => {
 
 // 新增留言
 router.post('/newComment', (req, res) => {
-    // req.body => { postID: 46, userID: 1, content: 'comment Test' }
+    // req.body => { postID: 20, userID: 1, content: 'comment Test' }
 
     // query
     var sql = "INSERT INTO `instagram_comments`(`post_id`, `member_id`, `content`) VALUES (?,?,?)";
@@ -71,6 +71,92 @@ router.post('/newSubComment', (req, res) => {
     });
 
 });
+// 刪除貼文
+router.post('/deleteStory', (req, res) => {
+    // { userID: 1, postID: 8 }
+ 
+    // query
+    var sql = "DELETE FROM `instagram_stories` WHERE `member_id` = ? AND `post_id` = ? ";
+    db.query(sql, [req.body.userID, req.body.postID], (error, results, fields) => {
+        if (!error) {
+            if(results.length>0){
+                res.json({ success: true })
+            } else {
+                res.json({ success: true })
+            }
+        } else {
+            res.json({ success: false })
+        }
+    });
+});
+
+
+// [ RowDataPacket {
+//     favorite_id: 1,
+//     member_id: 1,
+//     post_id: 1,
+//     isFavorite: 1,
+//     time: 2019-05-27T12:29:23.000Z } ]
+
+// 喜歡
+router.post('/changeFavorite', (req, res) => {
+    // { userID: 1, postID: 2 }
+
+    // query
+    var sql = "SELECT * FROM `instagram_favorite` WHERE `member_id` = ? AND `post_id` = ?";
+    db.query(sql, [req.body.userID, req.body.postID], (error, results, fields) => {
+        if (!error) {
+
+            if (results.length === 0) {
+                // 第一次點 就新增
+                var sql = "INSERT INTO `instagram_favorite`(`member_id`, `post_id`) VALUES (?,?)";
+                db.query(sql, [req.body.userID, req.body.postID], (error, results, fields) => {
+                    res.json({ success: true })
+                })
+            } else {
+                // 有點過 就修改
+                var sql = "UPDATE `instagram_favorite` SET `isFavorite`=? WHERE `favorite_id`=?";
+                db.query(sql, [!results[0].isFavorite, results[0].favorite_id], (error, results, fields) => {
+                    res.json({ success: true })
+                })
+            }
+
+        } else {
+            res.json({ success: false })
+        }
+
+    });
+});
+
+// 收藏
+router.post('/changeBookmark', (req, res) => {
+    // { userID: 1, postID: 2 }
+
+    // query
+    var sql = "SELECT * FROM `instagram_bookmark` WHERE `member_id` = ? AND `post_id` = ?";
+    db.query(sql, [req.body.userID, req.body.postID], (error, results, fields) => {
+        if (!error) {
+
+            if (results.length === 0) {
+                // 第一次點 就新增
+                var sql = "INSERT INTO `instagram_bookmark`(`member_id`, `post_id`) VALUES (?,?)";
+                db.query(sql, [req.body.userID, req.body.postID], (error, results, fields) => {
+                    res.json({ success: true })
+                })
+            } else {
+                // 有點過 就修改
+                var sql = "UPDATE `instagram_bookmark` SET `isBookmark`=? WHERE `bookmark_id`=?";
+                db.query(sql, [!results[0].isBookmark, results[0].bookmark_id], (error, results, fields) => {
+                    res.json({ success: true })
+                })
+            }
+
+        } else {
+            res.json({ success: false })
+        }
+
+    });
+});
 
 
 // SQL 撈貼文 JOIN 發文者暱稱、AVATAR
@@ -84,10 +170,9 @@ router.get('/allData', (req, res) => {
 
     // query
     // setp 1 : GET Stories
-    var sql = "SELECT `instagram_stories`.*,UNIX_TIMESTAMP(`instagram_stories`.`post_time`) as post_time, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_stories` JOIN `member` WHERE `instagram_stories`.`member_id` = `member`.`member_id`"
+    var sql = "SELECT `instagram_stories`.*,UNIX_TIMESTAMP(`instagram_stories`.`post_time`) as post_time, `member`.`nickname`,`member`.`photo` AS `avatar` , SUM(case when `instagram_favorite`.`isFavorite` = 1 then 1 else 0 end ) as favorites FROM `instagram_stories` JOIN `member` ON `instagram_stories`.`member_id` = `member`.`member_id` LEFT JOIN `instagram_favorite` ON `instagram_stories`.`post_id` = `instagram_favorite`.`post_id` GROUP BY `instagram_stories`.`post_id`"
     db.query(sql, (error, results, fields) => {
         if (!error) {
-
             // results -> Stories
             data = results; // [{story},{story}]
             for (let i = 0; i < data.length; i++) {
@@ -137,6 +222,50 @@ router.get('/allData', (req, res) => {
 
 
 });
+// get Story Fav or Book
+router.post('/storyState', (req, res) => {
+    // { id: 1 }
+
+    var data = [[], [], []]  // [ favorite [], bookmark [], myPost [] ]
+    var sql = "SELECT * FROM `instagram_favorite` WHERE `member_id` = ? AND `isFavorite` = 1"
+    db.query(sql, req.body.userId, (error, results, fields) => {
+        // 有按喜歡的 丟到陣列
+        for (let i = 0; i < results.length; i++) {
+            data[0].push(results[i].post_id)
+        }
+        var sql = "SELECT * FROM `instagram_bookmark` WHERE `member_id` = ? AND `isBookmark` = 1"
+        db.query(sql, req.body.userId, (error, results, fields) => {
+            // 有按喜歡的 丟到陣列
+            for (let i = 0; i < results.length; i++) {
+                data[1].push(results[i].post_id)
+            }
+            var sql = "SELECT `post_id` FROM `instagram_stories` WHERE `member_id` = ?"
+            db.query(sql, req.body.userId, (error, results, fields) => {
+                // 
+                // console.log(results)
+                for (let i = 0; i < results.length; i++) {
+                    data[2].push(results[i].post_id)
+                }
+                res.json(data);
+            })
+        })
+    })
+
+});
+
+// [ RowDataPacket {
+//     favorite_id: 1,
+//     member_id: 1,
+//     post_id: 1,
+//     isFavorite: 1,
+//     time: 2019-05-27T12:29:23.000Z },
+//   RowDataPacket {
+//     favorite_id: 2,
+//     member_id: 1,
+//     post_id: 2,
+//     isFavorite: 1,
+//     time: 2019-05-27T12:44:05.000Z } ]
+
 
 // 轉換時間格式
 function formatTime(timestamp) {
