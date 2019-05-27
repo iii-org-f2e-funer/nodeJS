@@ -37,6 +37,8 @@ var corsOptions = {
 }
 app.use(cors(corsOptions))
 
+app.use(express.static('public'))
+
 app.use(
   session({
     saveUninitialized: false,
@@ -55,7 +57,7 @@ const product = require('./routes/product')
 app.use('/product', product)
 
 //chatroom
-const chatroom = require('./routes/chatroom')
+const chatroom = require('./routes/chatroom_socket')
 app.use('/chatroom', chatroom)
 
 // instagram

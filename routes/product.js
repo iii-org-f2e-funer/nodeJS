@@ -15,13 +15,14 @@ db.connect(error => {
 })
 
 
-router.get('/', (req, res) => {
-    res.send("Hello")
-});
-router.post('/post', (req, res) => {
-    res.send(req.body)
-});
+//game-type
+router.get('/game_type', (req, res) => {
+  let sql = "SELECT * FROM `game_type` WHERE 1"
+  db.query(sql, (error, results, fields) => {
+      res.json(results);
+  });
 
+});
 
 //product-all
 router.get('/productlist', (req, res) => {
