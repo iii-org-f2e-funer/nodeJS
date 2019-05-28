@@ -7,6 +7,7 @@ const moment = require('moment')
 var app = require('express')()
 var server = require('http').Server(app)
 var io = require('socket.io')(server)
+const db=require("./db")
 
 //連接socket io
 server.listen(8080, () => {
@@ -27,17 +28,18 @@ io.on('connection', function(socket) {
     console.log(`${obj.roomID}`)
     console.log("chat data:",obj)
     io.to(`${obj.roomID}`).emit('message', obj)
+    io.emit("all_message",obj)
   })
  
 })
 
 //連線資料庫
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root', //root  PHLEE
-  password: '', //""  au4a83
-  database: 'happy6', //happy6  chatroom
-})
+// const db = mysql.createConnection({
+//   host: 'localhost',
+//   user: 'root', //root  PHLEE
+//   password: '', //""  au4a83
+//   database: 'happy6', //happy6  chatroom
+// })
 db.connect(function(err) {
   if (err) {
     console.log('error connecting: ' + err.stack)
@@ -81,11 +83,11 @@ router.get('/message/:user_id/:to_id', (req, res) => {
   console.log('req id:', req.params.user_id)
   console.log('to id:', req.params.to_id)
   db.queryAsync({
-    sql: `SELECT h.id h_id,h.create_time h_stime, m.id m_id, m.content m_cont, m.is_sender m_issender, m.time m_time,IF(m.is_sender, x.name,y.name) as sender, IF(!m.is_sender, x.name,y.name) as receiver,IF(m.is_sender, x.member_id,y.member_id) as sender_id, IF(!m.is_sender, x.member_id,y.member_id) as receiver_id  FROM(SELECT * FROM chat_header WHERE from_id=${
-      req.params.user_id
-    } OR to_id=${
-      req.params.user_id
-    } ) as h JOIN chat_message as m ON(h.id=m.header_id) JOIN member x ON(h.from_id=x.member_id) JOIN member y ON (h.to_id=y.member_id) ORDER BY m.time DESC`,
+    sql: `SELECT h.id h_id,h.create_time h_stime, m.id m_id, m.content m_cont, m.sender_id m_sender_id,m.receiver_id m_receiver_id, m.time m_time, x.name x_name  FROM(SELECT * FROM chat_header WHERE from_id=${
+        req.params.user_id
+      } OR to_id=${
+        req.params.user_id
+      } ) as h JOIN chat_message as m ON(h.id=m.header_id) JOIN member x ON(m.sender_id=x.member_id)  ORDER BY m.time DESC`,
 
     //{h_id: ,h_sub: ,m_id: ,m_sender: ,m_cont: ,m_time: }
 
@@ -115,17 +117,18 @@ router.post('/message/:user_id/:to_id', (req, res) => {
   //insert
   db.queryAsync('INSERT INTO `chat_message` SET ? ', {
     header_id: bodyData.h_id,
-    is_sender: bodyData.m_issender,
-    content: bodyData.m_cont,
+    sender_id:bodyData.uid,
+    content: bodyData.message,
     is_readed: bodyData.is_readed,
-    time: bodyData.m_time,
+    time: bodyData.time,
+    receiver_id:bodyData.to_uid
   }).then(result => {
     if (result.affectedRows === 1) {
       console.log('insert data success')
       //UPDATE
       db.queryAsync(
         'UPDATE chat_header SET subject = ?, time = ? WHERE id = ?',
-        [bodyData.m_cont, bodyData.m_time, bodyData.h_id]
+        [bodyData.message, bodyData.time, bodyData.h_id]
       ).then(result => {
         if (result.changedRows >= 1) {
           console.log('UPDATE SUCCESS')

@@ -34,8 +34,8 @@ io.on('connection', function(socket) {
 //連線資料庫
 const db = mysql.createConnection({
   host: 'localhost',
-  user: 'root', //root  PHLEE
-  password: '', //""  au4a83
+  user: 'PHLEE', //root  PHLEE
+  password: 'au4a83', //""  au4a83
   database: 'happy6', //happy6  chatroom
 })
 db.connect(function(err) {
