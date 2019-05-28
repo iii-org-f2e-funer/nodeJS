@@ -1,10 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-// const db = require('./db')
-const mysql = require('mysql')
-const db_config = require('../datebase_config.js')
-const db = mysql.createConnection(db_config)
+const db = require('./db')
+
 // 上傳檔案設定
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -40,6 +38,41 @@ router.post('/newStory', upload.array('photos'), (req, res) => {
             res.json({ success: false })
         }
     });
+});
+
+// 編輯貼文
+router.post('/updateStory', upload.array('photos'), (req, res) => {
+    // req.body => { memberID: 1, content: 'Story'}
+    // req.files => [{}, {}, {}]
+    // req.files[0] => { fieldname: 'photos',originalname: '',encoding: '7bit',mimetype: 'image/png',destination: 'public/images',
+    //                   filename: '1558798020723.png',path: 'public\\images\\1558798020723.png',size: 2086488 }
+
+    // photo's filename to str  =>  "1558798020723.png,1558798020724.png,1558798020725.png"
+    var photos_filename = req.files.map(item => (item.filename)).join();
+
+    // query
+    if (photos_filename === ''){
+        var sql = "UPDATE `instagram_stories` SET `content`=? WHERE `post_id`= ? AND `member_id`= ?";
+        db.query(sql, [req.body.content, req.body.postID, req.body.memberID], (error, results, fields) => {
+            if (!error) {
+                res.json({ success: true })
+            } else {
+                console.log(error)
+                res.json({ success: false })
+            }
+        });
+    } else {
+        var sql = "UPDATE `instagram_stories` SET `content`=?,`photos`=? WHERE `post_id`= ? AND `member_id`= ?";
+        db.query(sql, [req.body.content, photos_filename, req.body.postID, req.body.memberID], (error, results, fields) => {
+            if (!error) {
+                res.json({ success: true })
+            } else {
+                console.log(error)
+                res.json({ success: false })
+            }
+        });
+    }
+   
 });
 
 // 新增留言
