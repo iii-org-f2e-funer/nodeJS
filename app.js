@@ -48,6 +48,10 @@ app.use(
   })
 )
 
+// member
+const member = require('./routes/member')
+app.use('/member', member)
+
 // firm
 const firm = require('./routes/firm')
 app.use('/firm', firm)
