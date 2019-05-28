@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const db = require('./db')
-
+// const db = require('./db')
+const db_config = require('../datebase_config.js')
+const db = mysql.createConnection(db_config)
 // 上傳檔案設定
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
