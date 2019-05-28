@@ -209,9 +209,8 @@ router.post('/reservation', (req, res) => {
 	let sql =
 		'INSERT INTO `site_reservation` ( `user_id`, `name`, `phone`, `peoples`, `date`, `remark`)  VALUES ( ?, ?, ?, ?, ?, ?);';
 	let query = db.query(sql, initData, (error, results, fields) => {
-		// if (error) throw error;
-		// if (results.affectedRows === 1) {
-		if (1) {
+		if (error) throw error;
+		if (results.affectedRows === 1) {
 			console.log(req.body);
 			date = new Date(req.body.date);
 			year = date.getFullYear();
