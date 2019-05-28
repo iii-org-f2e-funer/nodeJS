@@ -15,6 +15,7 @@ const cityCodeToString = require('./gameMapSql.js');
 db.connect((error) => {
 	if (error) {
 		console.log('MySQL連線失敗 Error: ' + error.code);
+		process.exit();
 	} else {
 		console.log('Good!! MySQL Connection successful');
 	}
@@ -50,7 +51,6 @@ router.get('/sid/:sidCode', (req, res) => {
 				newArray.push(results[index]);
 				console.log('process....');
 				if (newArray.length === results.length) {
-					console.log('finish');
 					res.json(newArray);
 				}
 			});
@@ -169,7 +169,7 @@ router.get('/All', (req, res) => {
 				}
 				results[index]['imageArray'] = imgArray;
 				newArray.push(results[index]);
-				console.log('process....');
+
 				if (newArray.length === results.length) {
 					console.log('finish');
 					res.json(newArray);
