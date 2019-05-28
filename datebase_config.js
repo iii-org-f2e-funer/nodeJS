@@ -7,8 +7,8 @@ const db_config_remote = {
 
 const db_config_local = {
     host: 'localhost',
-    user: 'root',
-    password: '',
+    user: 'happy6',
+    password: 'dj94xk46',
     database: 'happy6',
 }
 
