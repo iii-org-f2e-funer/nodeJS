@@ -1,27 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const mysql = require('mysql')
-const db_config = require('../datebase_config.js')
-const db = mysql.createConnection(db_config)
-
-// Error handling
-db.connect(error => {
-  if (error) {
-    console.log('MySQL連線失敗 Error: ' + error.code)
-  }
-  else{
-    console.log('Good!! MySQL Connection successful')
-  }
-})
+const db = require('./db2')
 
 
-router.get('/', (req, res) => {
-    res.send("Hello")
+//game-type
+router.get('/game_type', (req, res) => {
+  let sql = "SELECT * FROM `game_type` WHERE 1"
+  db.query(sql, (error, results, fields) => {
+      res.json(results);
+  });
+
 });
-router.post('/post', (req, res) => {
-    res.send(req.body)
-});
-
 
 //product-all
 router.get('/productlist', (req, res) => {
@@ -40,6 +29,53 @@ router.get('/productlist2', (req, res) => {
     });
 
 });
+
+
+//product_order
+
+router.post('/product_order', function (req, res) {
+  const data = { success: false, message: '' }
+  console.log(req.body)
+  let sql = 'INSERT INTO `product_order`(`order_sid`, `login_user_sid`, `paymethod`, `getmethod`, `Freight`, `totalprice`, `geter_name`, `geter_addr`, `geter_city`, `geter_dist`, `geter_email`, `geter_phone`, `order_name`, `order_city`, `order_dist`, `order_addr`, `order_email`, `order_phone`, `paid`, `cre_date`, `allcart`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+  db.query(
+    sql,
+    [
+         null,
+         req.body.login_user_sid,
+         req.body.paymethod,
+         req.body.getmethod,
+         req.body.Freight,
+         req.body.totalprice,
+         req.body.geter_name,
+         req.body.geter_addr,
+         req.body.geter_city,
+         req.body.geter_dist,
+         req.body.geter_email,
+         req.body.geter_phone,
+         req.body.order_name,
+         req.body.order_city,
+         req.body.order_dist,
+         req.body.order_addr,
+         req.body.order_email,
+         req.body.order_phone,
+         req.body.paid,
+         new Date(),
+         req.body.allcart,
+    ],
+    (error, results, fields) => {
+      if (error) throw error
+      if (results.affectedRows === 1) {
+        data.success = true
+        data.message = '店家資料新增成功'
+        data.body = req.body
+        res.json(data)
+      } else {
+        data.message = '新增失敗'
+        res.json(data)
+      }
+    }
+  )
+})
 
 
 module.exports = router;

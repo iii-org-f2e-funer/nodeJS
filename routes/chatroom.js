@@ -25,7 +25,7 @@ const db=mysql.createConnection({
   //去後台要聊天資料
 router.get("/message/user_id1",(req,res)=>{
     db.queryAsync({
-      sql: 'SELECT h.id h_id, m.id m_id, m.content m_cont, m.time m_time,IF(m.is_sender, x.name,y.name) as sender, IF(!m.is_sender, x.name,y.name) as receiver,IF(m.is_sender, x.member_id,y.member_id) as sender_id FROM(SELECT * FROM chat_header WHERE from_id=1) as h JOIN chat_message as m ON(h.id=m.header_id) JOIN member x ON(h.from_id=x.member_id) JOIN member y ON (h.to_id=y.member_id) ORDER BY m.time DESC',
+      sql: 'SELECT h.id h_id,h.create_time h_stime, m.id m_id, m.content m_cont, m.is_sender m_issender, m.time m_time,IF(m.is_sender, x.name,y.name) as sender, IF(!m.is_sender, x.name,y.name) as receiver,IF(m.is_sender, x.member_id,y.member_id) as sender_id FROM(SELECT * FROM chat_header WHERE from_id=1) as h JOIN chat_message as m ON(h.id=m.header_id) JOIN member x ON(h.from_id=x.member_id) JOIN member y ON (h.to_id=y.member_id) ORDER BY m.time DESC',
   
       //{h_id: ,h_sub: ,m_id: ,m_sender: ,m_cont: ,m_time: }
   
