@@ -38,7 +38,7 @@ function awsSNS(sendMessage, sendPhoneNum) {
 db.connect((error) => {
 	if (error) {
 		console.log('MySQL連線失敗 Error: ' + error.code);
-		process.exit();
+		throw error;
 	} else {
 		console.log('Good!! MySQL Connection successful');
 	}
@@ -203,16 +203,32 @@ router.get('/All', (req, res) => {
 });
 
 router.post('/reservation', (req, res) => {
+	console.log(req.body);
 	let initData = [ req.body.name, req.body.phone, req.body.people, req.body.date, 'sampleremark' ];
 	initData.unshift(21047); /////////userID
 	let sql =
 		'INSERT INTO `site_reservation` ( `user_id`, `name`, `phone`, `peoples`, `date`, `remark`)  VALUES ( ?, ?, ?, ?, ?, ?);';
 	let query = db.query(sql, initData, (error, results, fields) => {
-		if (error) throw error;
-		if (results.affectedRows === 1) {
+		// if (error) throw error;
+		// if (results.affectedRows === 1) {
+		if (1) {
 			console.log(req.body);
+			date = new Date(req.body.date);
+			year = date.getFullYear();
+			month = date.getMonth() + 1;
+			dt = date.getDate();
 
-			let SMS_Msg = 'FUNer您的好桌友';
+			if (dt < 10) {
+				dt = '0' + dt;
+			}
+			if (month < 10) {
+				month = '0' + month;
+			}
+			let SMS_Msg = `FUNer場地預約成功!!//場地:${req.body.store}//人數:${req.body.people}//預約時間:${year}-${month}-${dt}`;
+			let SMS_PhoneNum = req.body.phone.replace(/\d{2}/, '+886');
+			// awsSNS(SMS_Msg);
+			console.log(SMS_Msg);
+			console.log(SMS_PhoneNum);
 			res.send('ok');
 		} else {
 		}
