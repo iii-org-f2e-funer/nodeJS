@@ -51,6 +51,18 @@ router.post('/imgupload', upload.single('pt_img'),(req,res) =>{
       }
     }
 })
+//讀取區域廠商
+router.post('/loadadd', upload.single(),(req,res) =>{
+  let pt_city = req.body.pt_city
+  let pt_dist = req.body.pt_dist
+  
+  let sql ="SELECT `sid`,`firmname`,`city`,`dist`,`address` FROM `firm_manage` WHERE `city` = (?) AND `dist`= (?)"
+
+  db.query(sql, [pt_city, pt_dist], (error, results, fields) =>{
+
+    res.json(results)
+  })
+})
 
 
 //新增揪團
@@ -117,7 +129,7 @@ router.post('/ptinfo',function (req, res) {
   let ptsid=req.body.ptsid;
   let sql = 'SELECT * FROM `party_manage` WHERE `pt_sid`=(?)';
 
-  db.query(sql, [req.body.ptsid], (error, results, fields) => {
+  db.query(sql, [ptsid], (error, results, fields) => {
     let pt_host = results[0].pt_host
     // console.log(pt_host)
     let membersql = 'SELECT `photo`, `name`, `nickname` FROM `member` WHERE `account` = (?)';
@@ -129,6 +141,19 @@ router.post('/ptinfo',function (req, res) {
   })
 });
 
+//報名者名單
+router.post('/ptapplyer',function (req, res) {  
+  
+  let ptsid=req.body.ptsid;
+  let sql = 'SELECT * FROM `party_apply` WHERE `pt_sid` = (?)';
+
+  db.query(sql, [ptsid], (error, results, fields) => {
+        console.log(results)
+        res.json(results)
+      })
+  })
+
+
 //新增報名參團
 router.post('/apply',function (req, res) {
 // console.log(req.body)
@@ -139,11 +164,11 @@ router.post('/apply',function (req, res) {
   let applyresult = {success: false, errormsg:'',applyinfo:''}
 
   let testsql = 'SELECT COUNT(1) FROM `party_apply` WHERE `pt_sid` = (?) AND `pt_applymember` = (?)'
-  db.query(testsql, [ptsid, 'testaccount7'], (error, results, fields) => {
+  db.query(testsql, [ptsid, 'testaccount1'], (error, results, fields) => {
     // console.log(results[0]['COUNT(1)'])
     if(results[0]['COUNT(1)'] == 0){
       let sql ='INSERT INTO `party_apply`(`pt_sid`, `pt_host`, `pt_applymember`) VALUES (?,?,?)'
-          db.query(sql, [ptsid, pthost,'testaccount7'], (error, results, fields) => {
+          db.query(sql, [ptsid, pthost,'testaccount1'], (error, results, fields) => {
             applyresult['success'] = true
             applyresult['applyinfo'] = results
             // console.log(applyresult)
