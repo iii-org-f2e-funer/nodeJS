@@ -11,6 +11,29 @@ const router = express.Router();
 const db_config = require('../datebase_config.js');
 const db = mysql.createConnection(db_config);
 const cityCodeToString = require('./gameMapSql.js');
+
+function awsSNS(sendMessage, sendPhoneNum) {
+	let sendMsg = require('aws-sns-sms');
+	let awsConfig = {
+		accessKeyId: '',
+		secretAccessKey: '',
+		region: 'ap-northeast-1'
+	};
+
+	let msg = {
+		message: sendMessage,
+		sender: 'VISHAL',
+		phoneNumber: sendPhoneNum // phoneNumber along with country code
+	};
+	sendMsg(awsConfig, msg)
+		.then((data) => {
+			console.log('Message sent');
+		})
+		.catch((err) => {
+			consolr.log(err);
+		});
+}
+
 // Error handling
 db.connect((error) => {
 	if (error) {
@@ -188,6 +211,8 @@ router.post('/reservation', (req, res) => {
 		if (error) throw error;
 		if (results.affectedRows === 1) {
 			console.log(req.body);
+
+			let SMS_Msg = 'FUNer您的好桌友';
 			res.send('ok');
 		} else {
 		}
