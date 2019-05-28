@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 // const db = require('./db')
+const mysql = require('mysql')
 const db_config = require('../datebase_config.js')
 const db = mysql.createConnection(db_config)
 // 上傳檔案設定
