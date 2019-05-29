@@ -56,7 +56,7 @@ const product = require('./routes/product')
 app.use('/product', product)
 
 //chatroom
-const chatroom = require('./routes/chatroom_socket')
+const chatroom = require('./routes/chatroom_socket_new')
 app.use('/chatroom', chatroom)
 
 // instagram

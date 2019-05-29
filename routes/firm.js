@@ -4,8 +4,19 @@ const db = require('../utility/db.js')
 const axios = require('axios')
 const nodemailer = require('nodemailer')
 const uuidv1 = require('uuid/v1')
+const multer = require('multer')
 
-const multer = require('multer') //
+// 上傳檔案設定
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, './public/images/firm')
+  },
+  filename: function(req, file, cb) {
+    //   cb(null, file.fieldname + '-' + Date.now())
+    cb(null, Date.now() + '.' + file.originalname.split('.')[1])
+  },
+})
+const upload = multer({ storage: storage })
 
 router.get('/userInfo', function(req, res) {
   const data = { success: false, isFirm: false }
@@ -273,66 +284,93 @@ router.get('/firmInfo', function(req, res) {
     }
   })
 })
-// 上傳檔案設定
-const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-    cb(null, './public/images')
-  },
-  filename: function(req, file, cb) {
-    //   cb(null, file.fieldname + '-' + Date.now())
-    cb(null, Date.now() + '.' + file.originalname.split('.')[1])
-  },
+//廠商logo更新
+router.post('/avatarUpdate', upload.array('file'), function(req, res) {
+  const data = { success: false, message: '' }
+  let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
+  db.query(
+    sql,
+    [{ my_file: req.files[0].filename }, req.body.firm_id],
+    (error, results, fields) => {
+      if (error) throw error
+      if (results.affectedRows === 1) {
+        data.success = true
+        data.body = req.body
+        data.message = 'logo修改成功'
+        res.json(data)
+      } else {
+        data.message = '修改失敗'
+        res.json(data)
+      }
+    }
+  )
 })
-const upload = multer({ storage: storage })
 
 //新增
 router.post('/insertAccount', upload.array('files'), function(req, res) {
-  console.log(req.body)
-  console.log(req.files)
-  var data2 = { success: false, message: 新增失敗 }
-  res.json(data2)
-  return
+  const data = { success: false, message: '' }
+  req.body.data = JSON.parse(req.body.data)
+  //地址轉換經緯度
   let url =
     'https://maps.googleapis.com/maps/api/geocode/json?address=' +
-    encodeURI(req.body.county + req.body.dist + req.body.address) +
+    encodeURI(
+      req.body.data.county + req.body.data.dist + req.body.data.address
+    ) +
     '&language=zh-TW&key=AIzaSyAf7RNhzB30wCXXposiM1SR6vGbSHkm2D4'
   let address
-  const data = { success: false, message: '' }
-
   axios
     .get(url)
     .then(res => {
       address = res.data.results[0].geometry.location
+      console.log(address)
     })
     .then(() => {
       let sql =
         'INSERT INTO `site_manage` (sid,firm_id,store,county,dist,address,lat,lng,phone,business_hours,public_holiday,charges,about,rule,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
+
       db.query(
         sql,
         [
           null,
-          req.body.firm_id,
-          req.body.store,
-          req.body.county,
-          req.body.dist,
-          req.body.address,
+          req.body.data.firm_id,
+          req.body.data.store,
+          req.body.data.county,
+          req.body.data.dist,
+          req.body.data.address,
           address.lat,
           address.lng,
-          req.body.phone,
-          req.body.business_hours,
-          req.body.public_holiday,
-          req.body.charges,
-          req.body.about,
-          req.body.rule,
-          req.body.status,
+          req.body.data.phone,
+          req.body.data.business_hours,
+          req.body.data.public_holiday,
+          req.body.data.charges,
+          req.body.data.about,
+          req.body.data.rule,
+          req.body.data.status,
         ],
         (error, results, fields) => {
+          console.log(results)
           if (error) throw error
           if (results.affectedRows === 1) {
             data.success = true
-            data.message = '店家資料新增成功'
             data.body = req.body
-            res.json(data)
+            let sql_img =
+              'INSERT INTO `site_image` (img_sid,site_id,image_path) VALUES (?,?,?)'
+            for (let i = 0; i < req.files.length; i++) {
+              db.query(
+                sql_img,
+                [null, results.insertId, req.files[i]],
+                (error2, results2, fields2) => {
+                  if (error2) throw error2
+                  if (results2.affectedRows === 1) {
+                    data.message = '場地照片新增成功'
+                    res.json(data)
+                  } else {
+                    data.message = '場地照片新增失敗'
+                    res.json(data)
+                  }
+                }
+              )
+            }
           } else {
             data.message = '新增失敗'
             res.json(data)
@@ -342,7 +380,7 @@ router.post('/insertAccount', upload.array('files'), function(req, res) {
     })
 })
 //更新
-router.post('/updateAccount', function(req, res) {
+router.post('/updateAccount', upload.array('files'), function(req, res) {
   let url =
     'https://maps.googleapis.com/maps/api/geocode/json?address=' +
     encodeURI(req.body.county + req.body.dist + req.body.address) +
@@ -382,6 +420,19 @@ router.post('/updateAccount', function(req, res) {
             data.success = true
             data.body = req.body
             data.message = '店家資料修改成功'
+            let sql = 'UPDATE `site_image` SET ? WHERE `site_id` = ?'
+            db.query(sql, [{}, req.body.sid], (error, results, fields) => {
+              if (error) throw error
+              if (results.affectedRows === 1) {
+                data.success = true
+                data.message = '店家資料新增成功'
+                data.body = req.body
+                res.json(data)
+              } else {
+                data.message = '新增失敗'
+                res.json(data)
+              }
+            })
             res.json(data)
           } else {
             data.message = '修改失敗'
