@@ -7,18 +7,9 @@ const mysql = require('mysql')
 const session = require('express-session')
 const cookieParser = require('cookie-parser')
 const app = express()
-const db_config = require('./datebase_config.js')
-const db = mysql.createConnection(db_config)
+
 
 app.use(express.static('public'))
-// Error handling
-db.connect(error => {
-  if (error) {
-    console.log('MySQL連線失敗 Error: ' + error.code)
-  } else {
-    console.log('Good!! MySQL Connection successful')
-  }
-})
 
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: false }))

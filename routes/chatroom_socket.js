@@ -8,6 +8,8 @@ var app = require('express')()
 var server = require('http').Server(app)
 var io = require('socket.io')(server)
 
+//連線資料庫
+const db = require('../utility/db.js')
 //連接socket io
 server.listen(8080, () => {
   console.log(new Date() + 'Socket.io Successfully connect to port 8080')
@@ -32,19 +34,19 @@ io.on('connection', function(socket) {
 })
 
 //連線資料庫
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'PHLEE', //root  PHLEE
-  password: 'au4a83', //""  au4a83
-  database: 'happy6', //happy6  chatroom
-})
-db.connect(function(err) {
-  if (err) {
-    console.log('error connecting: ' + err.stack)
-    return
-  }
-  console.log('連線成功--connected as id ' + db.threadId)
-})
+// const db = mysql.createConnection({
+//   host: 'localhost',
+//   user: 'PHLEE', //root  PHLEE
+//   password: 'au4a83', //""  au4a83
+//   database: 'happy6', //happy6  chatroom
+// })
+// db.connect(function(err) {
+//   if (err) {
+//     console.log('error connecting: ' + err.stack)
+//     return
+//   }
+//   console.log('連線成功--connected as id ' + db.threadId)
+// })
 bluebird.promisifyAll(db)
 
 //去後台要聊天資料

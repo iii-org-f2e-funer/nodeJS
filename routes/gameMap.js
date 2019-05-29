@@ -8,8 +8,7 @@ const session = require('express-session');
 const app = express();
 const router = express.Router();
 
-const db_config = require('../datebase_config.js');
-const db = mysql.createConnection(db_config);
+const db = require('../utility/db.js')
 const cityCodeToString = require('./gameMapSql.js');
 
 function awsSNS(sendMessage, sendPhoneNum) {
@@ -33,16 +32,6 @@ function awsSNS(sendMessage, sendPhoneNum) {
 			consolr.log(err);
 		});
 }
-
-// Error handling
-db.connect((error) => {
-	if (error) {
-		console.log('MySQL連線失敗 Error: ' + error.code);
-		throw error;
-	} else {
-		console.log('Good!! MySQL Connection successful');
-	}
-});
 
 router.get('/', (req, res) => {
 	let sql = 'SELECT site_manage.* FROM `site_manage';

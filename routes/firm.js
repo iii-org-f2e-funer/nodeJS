@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const db = require('./db2')
+const db = require('../utility/db.js')
 const axios = require('axios')
 const nodemailer = require('nodemailer')
 const uuidv1 = require('uuid/v1')

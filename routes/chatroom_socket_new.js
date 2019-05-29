@@ -7,7 +7,7 @@ const moment = require('moment')
 var app = require('express')()
 var server = require('http').Server(app)
 var io = require('socket.io')(server)
-const db=require("./db")
+const db = require('../utility/db.js')
 
 //連接socket io
 server.listen(8080, () => {

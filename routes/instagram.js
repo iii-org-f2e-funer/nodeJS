@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const db = require('./db')
+const db = require('../utility/db.js')
 
 // 上傳檔案設定
 const storage = multer.diskStorage({
