@@ -110,7 +110,36 @@ router.get('/message/:user_id/:to_id', (req, res) => {
 //要朋友資料
 
 // SELECT f.*, x.name user_name,y.name friend_name FROM(SELECT * FROM friend_list where user_id=2 OR friend_id=2) as f JOIN member x ON(f.user_id=x.member_id) JOIN member y ON (f.friend_id=y.member_id)
+router.get('/friendList/:user_id', (req, res) => {
+  let reqID=req.params.user_id
+  console.log('req id:', reqID)
+  db.queryAsync({
+    sql: `SELECT f.*, x.name user_name,y.name friend_name FROM(SELECT * FROM friend_list where user_id=${reqID} OR friend_id=${reqID}) as f JOIN member x ON(f.user_id=x.member_id) JOIN member y ON (f.friend_id=y.member_id) `,
+    timeout: 40000, // 40s
+  }).then(data => {
+    
+    let friendData=[]
+    console.log("allFriend:",data)
+    data.map((ele, index, arr) => {
+      let friendList={}
+      if(ele.user_id==reqID){
+        friendList.friendID=ele.friend_id
+        friendList.friendName=ele.friend_name
+        
+      }else if(ele.friend_id==reqID){
+        friendList.friendID=ele.user_id
+        friendList.friendName=ele.user_name
+      }
+     friendData=[friendList, ...friendData]
+    })
+    console.log("FriendData:",friendData)
+    res.json(friendData)
+  })
+})
 
+
+
+//POST DATA
 router.post('/message/:user_id/:to_id', (req, res) => {
   console.log('req id:', req.params.user_id)
   let bodyData = req.body
