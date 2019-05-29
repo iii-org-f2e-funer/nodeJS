@@ -39,6 +39,10 @@ app.use(
   })
 )
 
+// home
+const home = require('./routes/home')
+app.use('/home', home)
+
 // member
 const member = require('./routes/member')
 app.use('/member', member)
