@@ -119,6 +119,9 @@ router.post('/firmRegister', function(req, res) {
             user: 'gogofunner@gmail.com',
             pass: 'qaz741WSX852',
           },
+          tls: {
+            rejectUnauthorized: false,
+          },
         })
         //   {
         //     code: String (uuid),  //激活码，格式自己定义
@@ -141,7 +144,7 @@ router.post('/firmRegister', function(req, res) {
         }
         transporter.sendMail(options, function(error, info) {
           if (error) {
-            console.log(error)
+            console.log('EEEEEEEEEEEE', error)
           } else {
             console.log('訊息發送: ' + info.response)
           }
