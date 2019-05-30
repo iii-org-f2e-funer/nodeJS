@@ -56,9 +56,15 @@ router.post('/loadadd', upload.single(),(req,res) =>{
 })
 
 //抓登入帳號sid=>account
-// router.post('/loginaccount', upload.single(),(req,res) =>{
-//   console.log(req.body)
-// })
+router.post('/loginaccount', upload.single(),(req,res) =>{
+  // console.log(req.body.member_id)
+  let sql ='SELECT `account`,`city`,`site` FROM `member` WHERE `member_id` = (?)'
+  
+  db.query(sql, [req.body.member_id], (error, results, fields) =>{
+    // console.log(results)
+    res.json(results)
+  })
+})
 
 
 //新增揪團
@@ -182,15 +188,15 @@ router.post('/apply',function (req, res) {
 
   let ptsid=req.body.pt_sid
   let pthost=req.body.pt_host
-  let ptapplymem=req.body.pt_host
+  let ptapplymem=req.body.ptapplymem
   let applyresult = {success: false, errormsg:'',applyinfo:''}
 
   let testsql = 'SELECT COUNT(1) FROM `party_apply` WHERE `pt_sid` = (?) AND `pt_applymember` = (?)'
-  db.query(testsql, [ptsid, 'testaccount1'], (error, results, fields) => {
+  db.query(testsql, [ptsid, ptapplymem], (error, results, fields) => {
 
     if(results[0]['COUNT(1)'] == 0){
       let sql ='INSERT INTO `party_apply`(`pt_sid`, `pt_host`, `pt_applymember`) VALUES (?,?,?)'
-          db.query(sql, [ptsid, pthost,'testaccount1'], (error, results, fields) => {
+          db.query(sql, [ptsid, pthost,ptapplymem], (error, results, fields) => {
             applyresult['success'] = true
             applyresult['applyinfo'] = results
 
