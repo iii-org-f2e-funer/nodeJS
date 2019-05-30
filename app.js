@@ -39,6 +39,10 @@ app.use(
   })
 )
 
+// home
+const home = require('./routes/home')
+app.use('/home', home)
+
 // member
 const member = require('./routes/member')
 app.use('/member', member)
@@ -52,7 +56,7 @@ const product = require('./routes/product')
 app.use('/product', product)
 
 //chatroom
-const chatroom = require('./routes/chatroom_socket')
+const chatroom = require('./routes/chatroom_socket_new')
 app.use('/chatroom', chatroom)
 
 // instagram

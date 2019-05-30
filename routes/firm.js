@@ -4,10 +4,21 @@ const db = require('../utility/db.js')
 const axios = require('axios')
 const nodemailer = require('nodemailer')
 const uuidv1 = require('uuid/v1')
+const multer = require('multer')
 
-const multer = require('multer') //
+// 上傳檔案設定
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './public/images/firm')
+  },
+  filename: function (req, file, cb) {
+    //   cb(null, file.fieldname + '-' + Date.now())
+    cb(null, Date.now() + '.' + file.originalname.split('.')[1])
+  },
+})
+const upload = multer({ storage: storage })
 
-router.get('/userInfo', function(req, res) {
+router.get('/userInfo', function (req, res) {
   const data = { success: false, isFirm: false }
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
   db.query(sql, [req.session.user], (error, results, fields) => {
@@ -25,12 +36,16 @@ router.get('/userInfo', function(req, res) {
 })
 
 //登入
-router.post('/firmLogin', function(req, res) {
+router.post('/firmLogin', function (req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
   db.query(sql, [data.body.account], (error, results, fields) => {
     if (error) throw error
+    if (!results[0].islive) {
+      data.message = '此帳號未被激活'
+      res.json({ data })
+    }
     if (results[0] === undefined) {
       data.message = '帳號或密碼錯誤'
       res.json({ data })
@@ -49,18 +64,18 @@ router.post('/firmLogin', function(req, res) {
   })
 })
 
-router.post('/logOut', function(req, res) {
+router.post('/logOut', function (req, res) {
   req.session.destroy()
   res.json('成功登出')
 })
 
 //註冊
-router.post('/firmRegister', function(req, res) {
+router.post('/firmRegister', function (req, res) {
   const registerTime = new Date()
   const data = { success: false, message: '' }
   const code = uuidv1()
   let sql =
-    'INSERT INTO `firm_manage`(	sid,account,password,email,firmname,uniform_number,cre_date) VALUES (?,?,?,?,?,?,?);'
+    'INSERT INTO `firm_manage`(	sid,account,password,email,firmname,uniform_number,cre_date,code,islive) VALUES (?,?,?,?,?,?,?,?,?);'
   let query = db.query(
     sql,
     [
@@ -71,6 +86,8 @@ router.post('/firmRegister', function(req, res) {
       req.body.store,
       req.body.uniform,
       registerTime,
+      code,
+      false
     ],
     (error, results, fields) => {
       if (error) throw error
@@ -98,14 +115,13 @@ router.post('/firmRegister', function(req, res) {
           //主旨
           subject: '歡迎使用funner', // Subject line
           //嵌入 html 的內文
-          html:
-            '<h2 style="font-weight: 400">您好</h2><h2 style="font-weight: 400">感謝您在FUNer上註冊帳號，請點擊連結啟用帳號，謝謝</h2 style="font-weight: 400"><a href="http://localhost:3000/checkCode?account=' +
-            encodeURI(req.body.account) +
-            '&code=' +
+          html: '<h2 style="font-weight: 400">您好</h2><h2 style="font-weight: 400">感謝您在FUNer上註冊帳號，請點擊連結啟用帳號，謝謝</h2 style="font-weight: 400"><a href="http://localhost:3000/checkCode?code=' +
             code +
-            '"><a/><h2 style="font-weight: 400">此郵件為FUNer平台所發送，若您未在FUNer註冊帳號，請忽略此郵件</h2><h2 style="font-weight: 400">FUNer團隊 敬上</h2>',
+            '">http://localhost:3000/checkCode?code=' +
+            code +
+            '<a/><h2 style="font-weight: 400">此郵件為FUNer平台所發送，若您未在FUNer註冊帳號，請忽略此郵件</h2><h2 style="font-weight: 400">FUNer團隊 敬上</h2>',
         }
-        transporter.sendMail(options, function(error, info) {
+        transporter.sendMail(options, function (error, info) {
           if (error) {
             console.log(error)
           } else {
@@ -122,8 +138,44 @@ router.post('/firmRegister', function(req, res) {
   )
   console.log(query)
 })
+//checkCode
+router.post('/checkCode', function (req, res) {
+  console.log(req.body.code)
+  const data = { success: false, message: '' }
+  let sql = 'SELECT * FROM `firm_manage` WHERE `code` = (?)'
+  db.query(sql, [req.body.code], (error, results, fields) => {
+    if (error) throw error
+    if (results[0] === undefined) {
+      data.message = '找不到code，激活失敗'
+      res.json(data)
+    } else {
+      console.log(results[0].sid)
+      let sql2 = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
+      db.query(
+        sql2,
+        [
+          {
+            islive: true,
+          },
+          results[0].sid,
+        ],
+        (error2, results2, fields2) => {
+          if (error2) throw error2
+          if (results2.affectedRows === 1) {
+            data.success = true
+            data.message = '激活成功'
+          } else {
+            data.message = 'islive=false激活失敗'
+          }
+          res.json(data)
+        }
+      )
+
+    }
+  })
+})
 // check
-router.post('/unicodeCheck', function(req, res) {
+router.post('/unicodeCheck', function (req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `uniform_number` = (?)'
@@ -143,7 +195,7 @@ router.post('/unicodeCheck', function(req, res) {
   })
 })
 
-router.post('/accountCheck', function(req, res) {
+router.post('/accountCheck', function (req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
@@ -163,7 +215,7 @@ router.post('/accountCheck', function(req, res) {
   })
 })
 
-router.post('/emailCheck', function(req, res) {
+router.post('/emailCheck', function (req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
@@ -184,7 +236,7 @@ router.post('/emailCheck', function(req, res) {
 })
 
 //帳號設定
-router.post('/firmEdit', function(req, res) {
+router.post('/firmEdit', function (req, res) {
   const data = { success: false, message: '' }
   let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
   db.query(
@@ -216,7 +268,7 @@ router.post('/firmEdit', function(req, res) {
     }
   )
 })
-router.post('/passwordEdit', function(req, res) {
+router.post('/passwordEdit', function (req, res) {
   const data = { success: false, message: '' }
   let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
   db.query(
@@ -242,29 +294,32 @@ router.post('/passwordEdit', function(req, res) {
   )
 })
 
-//廠商資料設定
-router.get('/firmInfo', function(req, res) {
+//場地資料設定
+router.get('/firmInfo', function (req, res) {
   const data = { success: false, message: '' }
   let sql = 'SELECT * FROM `site_manage` WHERE `firm_id` = (?)'
   db.query(sql, [req.session.userSid], (error, results, fields) => {
     if (results[0] === undefined) {
       data.message = '此店家無場地資料'
       data.firm_id = req.session.userSid
+      data.success = true
       res.json(data)
     } else {
       data.body = results[0]
       db.query(
         'SELECT * FROM `site_image` WHERE `site_id` = (?)',
         [results[0].sid],
-        (error, img_results, fields) => {
-          data.success = true
-          data.firm_id = req.session.userSid
+        (error2, img_results, fields2) => {
+          if (error2) throw error2
           if (img_results[0] === undefined) {
+            data.success = true
+            data.firm_id = req.session.userSid
             data.message = '此店家提供場地，暫無照片'
             res.json(data)
           } else {
             data.firm_id = req.session.userSid
             data.message = '獲得場地資料及照片'
+            data.success = true
             data.img = img_results
             res.json(data)
           }
@@ -273,40 +328,50 @@ router.get('/firmInfo', function(req, res) {
     }
   })
 })
-// 上傳檔案設定
-const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-    cb(null, './public/images')
-  },
-  filename: function(req, file, cb) {
-    //   cb(null, file.fieldname + '-' + Date.now())
-    cb(null, Date.now() + '.' + file.originalname.split('.')[1])
-  },
+//廠商logo更新
+router.post('/avatarUpdate', upload.array('file'), function (req, res) {
+  const data = { success: false, message: '' }
+  let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
+  db.query(
+    sql,
+    [{ my_file: req.files[0].filename }, req.body.firm_id],
+    (error, results, fields) => {
+      if (error) throw error
+      if (results.affectedRows === 1) {
+        data.success = true
+        data.body = req.body
+        data.message = 'logo修改成功'
+        res.json(data)
+      } else {
+        data.message = '修改失敗'
+        res.json(data)
+      }
+    }
+  )
 })
-const upload = multer({ storage: storage })
 
 //新增
-router.post('/insertAccount', upload.array('files'), function(req, res) {
-  console.log(req.body)
-  console.log(req.files)
-  var data2 = { success: false, message: 新增失敗 }
-  res.json(data2)
-  return
-  let url =
-    'https://maps.googleapis.com/maps/api/geocode/json?address=' +
-    encodeURI(req.body.county + req.body.dist + req.body.address) +
-    '&language=zh-TW&key=AIzaSyAf7RNhzB30wCXXposiM1SR6vGbSHkm2D4'
-  let address
+router.post('/insertAccount', upload.array('files'), function (req, res) {
   const data = { success: false, message: '' }
 
+  //地址轉換經緯度
+  let url =
+    'https://maps.googleapis.com/maps/api/geocode/json?address=' +
+    encodeURI(
+      req.body.county + req.body.dist + req.body.address
+    ) +
+    '&language=zh-TW&key=AIzaSyAf7RNhzB30wCXXposiM1SR6vGbSHkm2D4'
+  let address
   axios
     .get(url)
     .then(res => {
       address = res.data.results[0].geometry.location
+      console.log(address)
     })
     .then(() => {
       let sql =
         'INSERT INTO `site_manage` (sid,firm_id,store,county,dist,address,lat,lng,phone,business_hours,public_holiday,charges,about,rule,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
+
       db.query(
         sql,
         [
@@ -330,25 +395,45 @@ router.post('/insertAccount', upload.array('files'), function(req, res) {
           if (error) throw error
           if (results.affectedRows === 1) {
             data.success = true
-            data.message = '店家資料新增成功'
             data.body = req.body
-            res.json(data)
+            let sql_img = 'INSERT INTO `site_image` ( img_sid,site_id,image_path ) VALUES (?,?,?)'
+            for (let i = 0; i < req.files.length; i++) {
+              db.query(
+                sql_img,
+                [null, results.insertId, req.files[i].filename],
+                (error2, results2, fields2) => {
+                  if (error2) throw error2
+                  if (results2.affectedRows === 1) {
+                    data.message = '場地照片新增成功'
+                  } else {
+                    data.message = '場地照片新增失敗'
+                  }
+                }
+              )
+            }
           } else {
-            data.message = '新增失敗'
-            res.json(data)
+            data.message = '場地新增失敗'
+
           }
         }
       )
+      res.json(data)
+      return
     })
+    .catch(error => {
+      console.log(error)
+    });
 })
 //更新
-router.post('/updateAccount', function(req, res) {
+router.post('/updateAccount', upload.array('files'), function (req, res) {
+  const data = { success: false, message: '' }
+
+  //地址轉換經緯度
   let url =
     'https://maps.googleapis.com/maps/api/geocode/json?address=' +
     encodeURI(req.body.county + req.body.dist + req.body.address) +
     '&language=zh-TW&key=AIzaSyAf7RNhzB30wCXXposiM1SR6vGbSHkm2D4'
   let address
-  const data = { success: false, message: '' }
   let sql = 'UPDATE `site_manage` SET ? WHERE `sid` = ?'
   axios
     .get(url)
@@ -381,15 +466,34 @@ router.post('/updateAccount', function(req, res) {
           if (results.affectedRows === 1) {
             data.success = true
             data.body = req.body
-            data.message = '店家資料修改成功'
-            res.json(data)
+            let sql_img = 'INSERT INTO `site_image` (img_sid,site_id,image_path) VALUES (?,?,?)'
+            for (let i = 0; i < req.files.length; i++) {
+              db.query(
+                sql_img,
+                [null, req.body.sid, req.files[i].filename],
+                (error2, results2, fields2) => {
+                  if (error2) throw error2
+                  if (results2.affectedRows === 1) {
+                    data.success = true
+                    data.message = '資料修改成功、場地照片新增成功'
+                  } else {
+                    data.success = true
+                    data.message = '資料修改成功、場地照片新增失敗'
+                  }
+                }
+              )
+            }
           } else {
             data.message = '修改失敗'
-            res.json(data)
           }
         }
       )
+      res.json(data)
+      return
     })
+    .catch(error => {
+      console.log(error)
+    });
 })
 
 module.exports = router
