@@ -8,14 +8,14 @@ const session = require('express-session');
 const app = express();
 const router = express.Router();
 
-const db = require('../utility/db.js')
+const db = require('../utility/db.js');
 const cityCodeToString = require('./gameMapSql.js');
 
 function awsSNS(sendMessage, sendPhoneNum) {
 	let sendMsg = require('aws-sns-sms');
 	let awsConfig = {
-		accessKeyId: '',
-		secretAccessKey: '',
+		accessKeyId: 'AKIAXGD4INLYUEW3LX3X',
+		secretAccessKey: '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',
 		region: 'ap-northeast-1'
 	};
 
@@ -24,13 +24,15 @@ function awsSNS(sendMessage, sendPhoneNum) {
 		sender: 'VISHAL',
 		phoneNumber: sendPhoneNum // phoneNumber along with country code
 	};
-	sendMsg(awsConfig, msg)
+	let ok = sendMsg(awsConfig, msg)
 		.then((data) => {
 			console.log('Message sent');
+			return 1;
 		})
 		.catch((err) => {
 			consolr.log(err);
 		});
+	if (ok) return 1;
 }
 
 router.get('/', (req, res) => {
@@ -162,31 +164,41 @@ router.get('/img/:sid', (req, res) => {
 	});
 });
 
-router.get('/All', (req, res) => {
+router.get('/All/:query?', (req, res) => {
 	let isOk = false;
-	let sql = 'SELECT * FROM `site_manage';
+	let query = req.params.query || '';
+	// let query = '桌遊';
+	let sql = 'select * from `site_manage` where `store` like  "%' + query + '%"';
+	console.log(sql);
+	// let sql = 'SELECT * FROM `site_manage`  WHERE `store` LIKE %' + query + '%';
 	db.query(sql, (error, results, fields) => {
-		let newArray = [];
+		if (results.length === 0) {
+			res.json([ 'nodata' ]);
+		} else {
+			console.log(results);
 
-		for (let index in results) {
-			let img_sid = results[index]['sid'];
-			let img_sql =
-				'SELECT site_manage.* , site_image.* FROM `site_manage` LEFT JOIN `site_image` ON site_manage.sid= site_image.site_id where `site_id`=(?)';
-			db.query(img_sql, img_sid, (error2, results2, fields2) => {
-				let imgArray = [];
-				if (results2) {
-					for (let index in results2) {
-						imgArray.push(results2[index]['image_path']);
+			let newArray = [];
+
+			for (let index in results) {
+				let img_sid = results[index]['sid'];
+				let img_sql =
+					'SELECT site_manage.* , site_image.* FROM `site_manage` LEFT JOIN `site_image` ON site_manage.sid= site_image.site_id where `site_id`=(?)';
+				db.query(img_sql, img_sid, (error2, results2, fields2) => {
+					let imgArray = [];
+					if (results2) {
+						for (let index in results2) {
+							imgArray.push(results2[index]['image_path']);
+						}
 					}
-				}
-				results[index]['imageArray'] = imgArray;
-				newArray.push(results[index]);
+					results[index]['imageArray'] = imgArray;
+					newArray.push(results[index]);
 
-				if (newArray.length === results.length) {
-					console.log('finish');
-					res.json(newArray);
-				}
-			});
+					if (newArray.length === results.length) {
+						console.log('finish');
+						res.json(newArray);
+					}
+				});
+			}
 		}
 	});
 });
@@ -213,11 +225,13 @@ router.post('/reservation', (req, res) => {
 				month = '0' + month;
 			}
 			let SMS_Msg = `FUNer場地預約成功!!//場地:${req.body.store}//人數:${req.body.people}//預約時間:${year}-${month}-${dt}`;
-			let SMS_PhoneNum = req.body.phone.replace(/\d{2}/, '+886');
-			// awsSNS(SMS_Msg);
+			let SMS_PhoneNum = req.body.phone.replace(/\d{2}/, '+8869');
+			let status = awsSNS(SMS_Msg, SMS_PhoneNum);
 			console.log(SMS_Msg);
 			console.log(SMS_PhoneNum);
-			res.send('ok');
+			if (status) {
+				res.send('ok');
+			}
 		} else {
 		}
 	});
