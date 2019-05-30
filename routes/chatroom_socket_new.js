@@ -125,10 +125,12 @@ router.get('/friendList/:user_id', (req, res) => {
       if(ele.user_id==reqID){
         friendList.friendID=ele.friend_id
         friendList.friendName=ele.friend_name
+        friendList.status=ele.status
         
       }else if(ele.friend_id==reqID){
         friendList.friendID=ele.user_id
         friendList.friendName=ele.user_name
+        friendList.status=ele.status
       }
      friendData=[friendList, ...friendData]
     })
