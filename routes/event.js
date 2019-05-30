@@ -69,8 +69,8 @@ router.post('/loadadd', upload.single(),(req,res) =>{
 router.post('/newptsubmit', upload.single(),(req,res) =>{
 
   let  sql = "INSERT INTO `party_manage`(`pt_host`, `pt_img`, `pt_member`, `pt_maxm`,`pt_time`, `pt_endtime`, `pt_city`, `pt_dist`, `pt_add`, `pt_title`, `pt_info`,`pt_level` ) VALUES (?,?,?,?,?,?,?,?,?,?,?,? )";
-
-    db.query(sql, [req.body.pt_host, 
+console.log(req.body)
+    db.query(sql, [ req.body.pt_host, 
                     req.body.pt_img, 
                     req.body.pt_member,
                     req.body.pt_maxm,
@@ -82,10 +82,37 @@ router.post('/newptsubmit', upload.single(),(req,res) =>{
                     req.body.pt_title,
                     req.body.pt_info,
                     req.body.pt_level], (error, results, fields) => {
+
       if (!error) {
           res.json({ success: true })
       } else {
           res.json({ success: false })
+      }
+    })
+});
+
+//修改揪團
+router.post('/editpt', upload.single(),(req,res) =>{
+
+  let  sql = "UPDATE `party_manage` SET `pt_img`=(?),`pt_member`=(?),`pt_maxm`=(?),`pt_time`=(?),`pt_endtime`=(?),`pt_city`=(?),`pt_dist`=(?),`pt_add`=(?),`pt_title`=(?),`pt_info`=(?),`pt_level`=(?) WHERE `pt_sid` = (?) ";
+
+    db.query(sql, [ req.body.pt_img, 
+                    req.body.pt_member,
+                    req.body.pt_maxm,
+                    req.body.pt_time,
+                    req.body.pt_endtime,
+                    req.body.pt_city,
+                    req.body.pt_dist,
+                    req.body.pt_add,
+                    req.body.pt_title,
+                    req.body.pt_info,
+                    req.body.pt_level,
+                    req.body.pt_sid], (error, results, fields) => {
+            
+      if (results.changedRows !== 1) {
+          res.json({ errormsg:'資料沒有更新',success: false })
+      } else {
+          res.json({ errormsg:'', success: true })
       }
     })
 });
@@ -148,7 +175,6 @@ router.post('/ptapplyer',function (req, res) {
   let sql = 'SELECT * FROM `party_apply` WHERE `pt_sid` = (?)';
 
   db.query(sql, [ptsid], (error, results, fields) => {
-        console.log(results)
         res.json(results)
       })
   })
@@ -156,7 +182,7 @@ router.post('/ptapplyer',function (req, res) {
 
 //新增報名參團
 router.post('/apply',function (req, res) {
-// console.log(req.body)
+
 
   let ptsid=req.body.pt_sid
   let pthost=req.body.pt_host
@@ -165,18 +191,18 @@ router.post('/apply',function (req, res) {
 
   let testsql = 'SELECT COUNT(1) FROM `party_apply` WHERE `pt_sid` = (?) AND `pt_applymember` = (?)'
   db.query(testsql, [ptsid, 'testaccount1'], (error, results, fields) => {
-    // console.log(results[0]['COUNT(1)'])
+
     if(results[0]['COUNT(1)'] == 0){
       let sql ='INSERT INTO `party_apply`(`pt_sid`, `pt_host`, `pt_applymember`) VALUES (?,?,?)'
           db.query(sql, [ptsid, pthost,'testaccount1'], (error, results, fields) => {
             applyresult['success'] = true
             applyresult['applyinfo'] = results
-            // console.log(applyresult)
+
             return res.json(applyresult)
         })
     } else {
       applyresult['errormsg'] = '你已經報名這個揪團過摟'
-      // console.log(applyresult)
+
       return res.json(applyresult)
     }
 })
