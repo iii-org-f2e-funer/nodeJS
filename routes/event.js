@@ -4,6 +4,8 @@ const mysql = require('mysql')
 const multer = require('multer');
 const upload = multer({dest: 'image/uploads/'})
 const fs = require('fs');
+const util = require('util')
+
 const db = require('../utility/db.js')
 
 router.get('/', (req, res) => {
@@ -114,7 +116,7 @@ router.post('/ptlist',upload.none(),function (req, res) {
   let nextOffset = offset + PER_PAGE;
   let previousOffset = offset - PER_PAGE < 1 ? 0 : offset - PER_PAGE;
 
-  let sql = 'SELECT * FROM `party_manage` WHERE `pt_state` = 1 ORDER BY `pt_sid` desc'
+  let sql = 'SELECT `party_manage`.*,`member`.`photo` FROM `party_manage` LEFT JOIN `member` ON `party_manage`.`pt_host` = `member`.`account` WHERE `party_manage`.`pt_state` = 1 ORDER BY `pt_sid` desc'
   db.query(sql, (error, results, fields) => {
     let items = results;    
     
@@ -161,7 +163,7 @@ router.post('/ptinfo',function (req, res) {
 router.post('/ptapplyer',function (req, res) {  
   
   let ptsid=req.body.ptsid;
-  let sql = 'SELECT * FROM `party_apply` WHERE `pt_sid` = (?)';
+  let sql = 'SELECT `party_apply`.* ,`member`.`photo`,`member`.`name` FROM `party_apply` LEFT JOIN `member` ON `party_apply`.`pt_applymember` = `member`.`account` WHERE `party_apply`.`pt_sid`= (?)';
 
   db.query(sql, [ptsid], (error, results, fields) => {
         res.json(results)
