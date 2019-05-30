@@ -5,6 +5,7 @@ const axios = require('axios')
 const nodemailer = require('nodemailer')
 const uuidv1 = require('uuid/v1')
 const moment = require('moment')
+const db = require('../utility/db.js')
 
 router.get('/userInfo', function(req, res) {
   const data = { success: false, isFirm: false }
@@ -76,7 +77,7 @@ router.post('/userRegister', function(req, res) {
       req.body.email, 
       registerTime,
     ],
-    
+
     (error, results, fields) => {
       if (error) throw error
       if (results.affectedRows === 1) {

@@ -7,18 +7,9 @@ const mysql = require('mysql')
 const session = require('express-session')
 const cookieParser = require('cookie-parser')
 const app = express()
-const db_config = require('./datebase_config.js')
-const db = mysql.createConnection(db_config)
+
 
 app.use(express.static('public'))
-// Error handling
-db.connect(error => {
-  if (error) {
-    console.log('MySQL連線失敗 Error: ' + error.code)
-  } else {
-    console.log('Good!! MySQL Connection successful')
-  }
-})
 
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -48,6 +39,10 @@ app.use(
   })
 )
 
+// home
+const home = require('./routes/home')
+app.use('/home', home)
+
 // member
 const member = require('./routes/member')
 app.use('/member', member)
@@ -61,7 +56,7 @@ const product = require('./routes/product')
 app.use('/product', product)
 
 //chatroom
-const chatroom = require('./routes/chatroom_socket')
+const chatroom = require('./routes/chatroom_socket_new')
 app.use('/chatroom', chatroom)
 
 // instagram
