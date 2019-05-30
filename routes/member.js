@@ -163,20 +163,20 @@ router.post('/emailCheck', function(req, res) {
 //帳號設定
 router.post('/memberEdit', function(req, res) {
   const data = { success: false, message: '' }
-  let sql = 'UPDATE `member` SET ? WHERE `sid` = ?'
+  let sql = 'UPDATE `member` SET ? WHERE `member_id` = ?'
   db.query(
     sql,
     [
       {
         account: req.body.account,
         name: req.body.name,
-        phone: req.body.phone,
+        mobile: req.body.mobile,
         city: req.body.city,
-        dist: req.body.dist,
-        address: req.body.address,
+        site: req.body.site,
+        street: req.body.street,
         email: req.body.email,
       },
-      req.body.sid,
+      req.body.member_id,
     ],
     (error, results, fields) => {
       if (error) throw error
@@ -195,7 +195,7 @@ router.post('/memberEdit', function(req, res) {
 
 router.post('/passwordEdit', function(req, res) {
   const data = { success: false, message: '' }
-  let sql = 'UPDATE `member` SET ? WHERE `sid` = ?'
+  let sql = 'UPDATE `member` SET ? WHERE `member_id` = ?'
   db.query(
     sql,
     [
@@ -275,11 +275,14 @@ router.post('/insertAccount', function(req, res) {
           req.body.account,
           req.body.password,
           req.body.email,
-          req.body.street,
-          street.lat,
-          street.lng,
-          req.body.site,
+          req.body.name,
+          req.body.nickname,
+          req.body.birthday,
+          req.body.mobile,
+          req.body.intro,
           req.body.city,
+          req.body.site,
+          req.body.street,
           req.body.absence,
           req.body.participation,
           req.body.account_status,
@@ -309,7 +312,7 @@ router.post('/UserUpdateAccount', function(req, res) {
     '&language=zh-TW&key=AIzaSyAf7RNhzB30wCXXposiM1SR6vGbSHkm2D4'
   let address
   const data = { success: false, message: '' }
-  let sql = 'UPDATE `member` SET ? WHERE `sid` = ?'
+  let sql = 'UPDATE `member` SET ? WHERE `member_id` = ?'
   axios
     .get(url)
     .then(res => {
@@ -320,21 +323,15 @@ router.post('/UserUpdateAccount', function(req, res) {
         sql,
         [
           {
-            store: req.body.store,
-            county: req.body.county,
-            dist: req.body.dist,
-            address: req.body.address,
-            lat: address.lat,
-            lng: address.lng,
-            phone: req.body.phone,
-            business_hours: req.body.business_hours,
-            public_holiday: req.body.public_holiday,
-            charges: req.body.charges,
-            about: req.body.about,
-            rule: req.body.rule,
-            status: req.body.status,
+            account: req.body.account,
+            password: req.body.password,
+            nickname: req.body.nickname,
+            email: req.body.email,
+            name: req.body.name,
+            nickname: req.body.nickname,
+            mobile: req.body.mobile,
           },
-          req.body.sid,
+          req.body.member_id,
         ],
         (error, results, fields) => {
           if (error) throw error
@@ -351,5 +348,7 @@ router.post('/UserUpdateAccount', function(req, res) {
       )
     })
 })
+
+// 訂單查詢
 
 module.exports = router
