@@ -60,10 +60,10 @@ router.post('/firmLogin', function(req, res) {
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
   db.query(sql, [data.body.account], (error, results, fields) => {
     if (error) throw error
-    // if (!results[0].islive) {
-    //   data.message = '此帳號未被激活'
-    //   res.json({ data })
-    // }
+    if (!results[0].islive) {
+      data.message = '此帳號未被激活'
+      res.json({ data })
+    }
     if (results[0] === undefined) {
       data.message = '帳號或密碼錯誤'
       res.json({ data })
