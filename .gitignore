@@ -7,8 +7,13 @@
 
 # testing
 /coverage
-/image
-/public
+
+*.jpg
+*.png
+
+
+/image/uploads/*
+!/image/uploads/git.keep
 
 # production
 /build
