@@ -55,12 +55,17 @@ router.post('/loadadd', upload.single(),(req,res) =>{
   })
 })
 
+//抓登入帳號sid=>account
+// router.post('/loginaccount', upload.single(),(req,res) =>{
+//   console.log(req.body)
+// })
+
 
 //新增揪團
 router.post('/newptsubmit', upload.single(),(req,res) =>{
 
   let  sql = "INSERT INTO `party_manage`(`pt_host`, `pt_img`, `pt_member`, `pt_maxm`,`pt_time`, `pt_endtime`, `pt_city`, `pt_dist`, `pt_add`, `pt_title`, `pt_info`,`pt_level` ) VALUES (?,?,?,?,?,?,?,?,?,?,?,? )";
-console.log(req.body)
+// console.log(req.body)
     db.query(sql, [ req.body.pt_host, 
                     req.body.pt_img, 
                     req.body.pt_member,
