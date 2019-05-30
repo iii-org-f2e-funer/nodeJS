@@ -7,10 +7,6 @@ const uuidv1 = require('uuid/v1')
 const moment = require('moment')
 const db = require('../utility/db.js')
 
-router.get('/userInfo', function(req, res) {
-  const data = { success: false, isFirm: false }
-})
-
 //登入
 router.post('/userLogin', function(req, res) {
   const data = { success: false, message: '' }
