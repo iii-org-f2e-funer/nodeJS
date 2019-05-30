@@ -1,22 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const mysql = require('mysql')
-const db_config = require('../datebase_config.js')
-const db = mysql.createConnection(db_config)
 const multer = require('multer');
 const upload = multer({dest: 'image/uploads/'})
 const fs = require('fs');
-const util = require('util'); 
+const db = require('../utility/db.js')
 
-// Error handling
-db.connect(error => {
-  if (error) {
-    console.log('MySQL連線失敗 Error: ' + error.code)
-  }
-  else{
-    console.log('Good!! MySQL Connection successful')
-  }
-})
 router.get('/', (req, res) => {
     res.send("Hello")
 });
