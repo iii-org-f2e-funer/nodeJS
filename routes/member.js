@@ -7,30 +7,6 @@ const uuidv1 = require('uuid/v1')
 const moment = require('moment')
 const db = require('../utility/db.js')
 
-router.get('/userInfo', function(req, res) {
-  const data = { success: false, isFirm: false }
-  let sql = 'SELECT * FROM `member` WHERE `account` = (?)'
-  db.query(sql, [req.session.user], (error, results, fields) => {
-    if (results[0] === undefined) {
-      res.json(data)
-    } else {
-      if (req.session.isFirm) {
-        data.isFirm = true
-      }
-      console.log(data)
-      console.log(results)
-      data.success = true
-      data.body = results[0]
-      // date轉換
-      data.body.birthday = moment(data.body.birthday).format('YYYY-MM-DD')
-      console.log(moment(data.body.birthday))
-      console.log(moment(data.body.birthday, ['YYYY-MM-DD']))
-
-      res.json(data)
-    }
-  })
-})
-
 //登入
 router.post('/userLogin', function(req, res) {
   const data = { success: false, message: '' }
@@ -45,8 +21,9 @@ router.post('/userLogin', function(req, res) {
     if (results[0].password === data.body.password) {
       req.session.user = data.body.account
       req.session.userSid = results[0].sid
-      req.session.isFirm = true
+      req.session.isFirm = false
       data.success = true
+      data.member_id = results[0].member_id
       data.message = '登入成功'
       res.json({ data })
     } else {
@@ -70,13 +47,7 @@ router.post('/userRegister', function(req, res) {
     'INSERT INTO `member`(member_id, account, password, email, name, nickname, birthday, mobile, intro, city, site, street, absence, participation, account_status, create_date, photo) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);'
   let query = db.query(
     sql,
-    [
-      null,
-      req.body.account,
-      req.body.password,
-      req.body.email, 
-      registerTime,
-    ],
+    [null, req.body.account, req.body.password, req.body.email, registerTime],
 
     (error, results, fields) => {
       if (error) throw error
@@ -202,7 +173,7 @@ router.post('/memberEdit', function(req, res) {
         phone: req.body.phone,
         city: req.body.city,
         dist: req.body.dist,
-        address: req.body.address,        
+        address: req.body.address,
         email: req.body.email,
       },
       req.body.sid,
