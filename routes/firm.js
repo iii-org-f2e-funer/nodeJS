@@ -60,10 +60,10 @@ router.post('/firmLogin', function(req, res) {
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
   db.query(sql, [data.body.account], (error, results, fields) => {
     if (error) throw error
-    if (!results[0].islive) {
-      data.message = '此帳號未被激活'
-      res.json({ data })
-    }
+    // if (!results[0].islive) {
+    //   data.message = '此帳號未被激活'
+    //   res.json({ data })
+    // }
     if (results[0] === undefined) {
       data.message = '帳號或密碼錯誤'
       res.json({ data })
@@ -131,8 +131,7 @@ router.post('/firmRegister', function(req, res) {
           //收件者
           to: req.body.email,
           //主旨
-          subject: '歡迎使用funner', // Subject line
-          //嵌入 html 的內文
+          subject: '歡迎使用funner',
           html:
             '<h2 style="font-weight: 400">您好</h2><h2 style="font-weight: 400">感謝您在FUNer上註冊帳號，請點擊連結啟用帳號，謝謝</h2 style="font-weight: 400"><a href="http://localhost:3000/checkCode?code=' +
             code +
@@ -155,7 +154,6 @@ router.post('/firmRegister', function(req, res) {
       }
     }
   )
-  console.log(query)
 })
 //checkCode
 router.post('/checkCode', function(req, res) {
