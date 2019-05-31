@@ -38,6 +38,7 @@ router.get('/userNotice', function (req, res) {
         })
     }
 })
+
 // 切換已讀
 router.post('/ReadChange',(req,res)=>{
     // console.log(req.body)
@@ -63,34 +64,6 @@ router.post('/ReadChange',(req,res)=>{
         })
     }
 })
-
-// 新增貼文
-router.get('/1', (req, res) => {
-
-    //給一般會員的通知
-    //--------------從這裡開始複製----------------
-
-    const member_id = 1; //收信人ID
-    const content = "我是內文"; //內文
-    const link = "" //通知點下去要連到哪
-    const img = 'http://localhost:3002/public/images' //圖片網址
-
-    // query
-    var sql = "INSERT INTO `member_notice`(`member_id`, `content`, `link`, `img`) VALUES (?,?,?,?)"
-    db.query(sql, [member_id, content, link, img], (error, results, fields) => {
-        if (!error) {
-            // dosomething
-            res.json({ success: true })
-        } else {
-            res.json({ success: false })
-        }
-    });
-    //-------------------到這裡-------------------
-
-
-
-});
-
 
 // 轉換時間格式
 function formatTime(timestamp) {
