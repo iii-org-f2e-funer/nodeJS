@@ -226,9 +226,10 @@ router.post('/reservation', (req, res) => {
 			}
 			let SMS_Msg = `FUNer場地預約成功!!//場地:${req.body.store}//人數:${req.body.people}//預約時間:${year}-${month}-${dt}`;
 			let SMS_PhoneNum = req.body.phone.replace(/\d{2}/, '+8869');
-			let status = awsSNS(SMS_Msg, SMS_PhoneNum);
+			// let status = awsSNS(SMS_Msg, SMS_PhoneNum);
 			console.log(SMS_Msg);
 			console.log(SMS_PhoneNum);
+			// if (status) {
 			if (status) {
 				res.send('ok');
 			}
