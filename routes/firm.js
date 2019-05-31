@@ -520,5 +520,50 @@ router.post('/updateAccount', upload.array('files'), function(req, res) {
       console.log(error)
     })
 })
-
+// 商品上架
+router.post('/insertProduct', upload.array('files'), function(req, res) {
+  const data = { success: false, message: '' }
+  let sql =
+    'INSERT INTO `product_manage` (sid,productName,seller_sid,price,description,sellStatus,createDate,gametype_id) VALUES (?,?,?,?,?,?,?,?)'
+  db.query(
+    sql,
+    [
+      null,
+      req.body.productName,
+      req.body.seller_id,
+      req.body.price,
+      req.body.description,
+      0,
+      new Date(),
+      req.body.gametype_id,
+    ],
+    (error, results, fields2) => {
+      if (error) throw error
+      if (results.affectedRows === 1) {
+        let sql_img =
+          'INSERT INTO `product_manage_images` (sid,	product_id,image_path) VALUES (?,?,?)'
+        for (let i = 0; i < req.files.length; i++) {
+          db.query(
+            sql_img,
+            [null, results.insertId, req.files[i].filename],
+            (error2, results2, fields2) => {
+              if (error2) {
+                throw error2
+              }
+              if (results2.affectedRows === 1) {
+                data.success = true
+                data.message = '商品新增成功、照片新增成功'
+              } else {
+                data.success = true
+                data.message = '商品新增成功、照片新增失敗'
+              }
+            }
+          )
+        }
+      }
+      res.json(data)
+      return
+    }
+  )
+})
 module.exports = router

@@ -58,40 +58,40 @@ router.post('/userRegister', function(req, res) {
         data.success = true
         data.message = '註冊成功，請至信箱驗證帳號'
         data.body = req.body
-        var transporter = nodemailer.createTransport({
-          service: 'Gmail',
-          auth: {
-            user: 'gogofunner@gmail.com',
-            pass: 'qaz741WSX852',
-          },
-        })
-        //   {
-        //     code: String (uuid),  //激活码，格式自己定义
-        //     date: Number, //过期日期，过期后不能激活
-        //     islive: Boolean //判断是否激活
-        //    }
-        var options = {
-          //寄件者
-          from: 'gogofunner@gmail.com',
-          //收件者
-          to: req.body.email,
-          //主旨
-          subject: '歡迎使用funner', // Subject line
-          //嵌入 html 的內文
-          html:
-            '<h2 style="font-weight: 400">您好</h2><h2 style="font-weight: 400">感謝您在FUNer上註冊帳號，請點擊連結啟用帳號，謝謝</h2 style="font-weight: 400"><a href="http://localhost:3000/checkCode?account=' +
-            encodeURI(req.body.account) +
-            '&code=' +
-            code +
-            '"><a/><h2 style="font-weight: 400">此郵件為FUNer平台所發送，若您未在FUNer註冊帳號，請忽略此郵件</h2><h2 style="font-weight: 400">FUNer團隊 敬上</h2>',
-        }
-        transporter.sendMail(options, function(error, info) {
-          if (error) {
-            console.log(error)
-          } else {
-            console.log('訊息發送: ' + info.response)
-          }
-        })
+        // var transporter = nodemailer.createTransport({
+        //   service: 'Gmail',
+        //   auth: {
+        //     user: 'gogofunner@gmail.com',
+        //     pass: 'qaz741WSX852',
+        //   },
+        // })
+        // //   {
+        // //     code: String (uuid),  //激活码，格式自己定义
+        // //     date: Number, //过期日期，过期后不能激活
+        // //     islive: Boolean //判断是否激活
+        // //    }
+        // var options = {
+        //   //寄件者
+        //   from: 'gogofunner@gmail.com',
+        //   //收件者
+        //   to: req.body.email,
+        //   //主旨
+        //   subject: '歡迎使用funner', // Subject line
+        //   //嵌入 html 的內文
+        //   html:
+        //     '<h2 style="font-weight: 400">您好</h2><h2 style="font-weight: 400">感謝您在FUNer上註冊帳號，請點擊連結啟用帳號，謝謝</h2 style="font-weight: 400"><a href="http://localhost:3000/checkCode?account=' +
+        //     encodeURI(req.body.account) +
+        //     '&code=' +
+        //     code +
+        //     '"><a/><h2 style="font-weight: 400">此郵件為FUNer平台所發送，若您未在FUNer註冊帳號，請忽略此郵件</h2><h2 style="font-weight: 400">FUNer團隊 敬上</h2>',
+        // }
+        // transporter.sendMail(options, function(error, info) {
+        //   if (error) {
+        //     console.log(error)
+        //   } else {
+        //     console.log('訊息發送: ' + info.response)
+        //   }
+        // })
         res.json({ data })
         return
       } else {
