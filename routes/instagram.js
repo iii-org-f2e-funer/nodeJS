@@ -35,6 +35,7 @@ router.post('/newStory', upload.array('photos'), (req, res) => {
         if (!error) {
             res.json({ success: true })
         } else {
+            console.log(error)
             res.json({ success: false })
         }
     });
@@ -85,6 +86,7 @@ router.post('/newComment', (req, res) => {
         if (!error) {
             res.json({ success: true })
         } else {
+            console.log(error)
             res.json({ success: false })
         }
     });
@@ -159,6 +161,7 @@ router.post('/changeFavorite', (req, res) => {
             }
 
         } else {
+            console.log(error)
             res.json({ success: false })
         }
 
@@ -189,6 +192,7 @@ router.post('/changeBookmark', (req, res) => {
             }
 
         } else {
+            console.log(error)
             res.json({ success: false })
         }
 
@@ -274,7 +278,6 @@ router.post('/storyState', (req, res) => {
     var data = [[], [], []]  // [ favorite [], bookmark [], myPost [] ]
     var sql = "SELECT * FROM `instagram_favorite` WHERE `member_id` = ? AND `isFavorite` = 1"
     db.query(sql, req.body.userId, (error, results, fields) => {
-        console.log(error)
         // 有按喜歡的 丟到陣列
         for (let i = 0; i < results.length; i++) {
             data[0].push(results[i].post_id)
