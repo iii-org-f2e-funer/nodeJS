@@ -51,7 +51,7 @@ router.post('/updateStory', upload.array('photos'), (req, res) => {
     var photos_filename = req.files.map(item => (item.filename)).join();
 
     // query
-    if (photos_filename === ''){
+    if (photos_filename === '') {
         var sql = "UPDATE `instagram_stories` SET `content`=? WHERE `post_id`= ? AND `member_id`= ?";
         db.query(sql, [req.body.content, req.body.postID, req.body.memberID], (error, results, fields) => {
             if (!error) {
@@ -72,7 +72,7 @@ router.post('/updateStory', upload.array('photos'), (req, res) => {
             }
         });
     }
-   
+
 });
 
 // 新增留言
@@ -93,6 +93,7 @@ router.post('/newComment', (req, res) => {
 
 // 新增留言的留言
 router.post('/newSubComment', (req, res) => {
+    console.log(req.body)
     // { commentID: 9, userID: 1, content: 'test' }
 
     // query
@@ -108,13 +109,14 @@ router.post('/newSubComment', (req, res) => {
 });
 // 刪除貼文
 router.post('/deleteStory', (req, res) => {
+
     // { userID: 1, postID: 8 }
- 
+
     // query
     var sql = "DELETE FROM `instagram_stories` WHERE `member_id` = ? AND `post_id` = ? ";
     db.query(sql, [req.body.userID, req.body.postID], (error, results, fields) => {
         if (!error) {
-            if(results.length>0){
+            if (results.length > 0) {
                 res.json({ success: true })
             } else {
                 res.json({ success: true })
@@ -205,23 +207,27 @@ router.get('/allData', (req, res) => {
 
     // query
     // setp 1 : GET Stories
-    var sql = "SELECT `instagram_stories`.*,UNIX_TIMESTAMP(`instagram_stories`.`post_time`) as post_time, `member`.`nickname`,`member`.`photo` AS `avatar` , SUM(case when `instagram_favorite`.`isFavorite` = 1 then 1 else 0 end ) as favorites FROM `instagram_stories` JOIN `member` ON `instagram_stories`.`member_id` = `member`.`member_id` LEFT JOIN `instagram_favorite` ON `instagram_stories`.`post_id` = `instagram_favorite`.`post_id` GROUP BY `instagram_stories`.`post_id`"
+    // var sql = "SELECT `instagram_stories`.*,UNIX_TIMESTAMP(`instagram_stories`.`post_time`) as post_time, `member`.`nickname`,`member`.`photo` AS `avatar` , SUM(case when `instagram_favorite`.`isFavorite` = 1 then 1 else 0 end ) as favorites FROM `instagram_stories` JOIN `member` ON `instagram_stories`.`member_id` = `member`.`member_id` LEFT JOIN `instagram_favorite` ON `instagram_stories`.`post_id` = `instagram_favorite`.`post_id` GROUP BY `instagram_stories`.`post_id`"
+    var sql = "SELECT `instagram_stories`.*,UNIX_TIMESTAMP(`instagram_stories`.`post_time`) as post_time, `member`.`nickname`,`member`.`photo` AS `avatar` , SUM(case when `instagram_favorite`.`isFavorite` = 1 then 1 else 0 end ) as favorites FROM `instagram_stories` JOIN `member` ON `instagram_stories`.`member_id` = `member`.`member_id` LEFT JOIN `instagram_favorite` ON `instagram_stories`.`post_id` = `instagram_favorite`.`post_id` GROUP BY `instagram_stories`.`post_id` UNION SELECT `instagram_stories`.*,UNIX_TIMESTAMP(`instagram_stories`.`post_time`) as post_time,  `firm_manage`.`firmname` AS `nickname`, `firm_manage`.`my_file` AS `avatar` , SUM(case when `instagram_favorite`.`isFavorite` = 1 then 1 else 0 end ) as favorites FROM `instagram_stories` JOIN `firm_manage` ON `instagram_stories`.`member_id` = CONCAT('f_',`firm_manage`.`sid`) LEFT JOIN `instagram_favorite` ON `instagram_stories`.`post_id` = `instagram_favorite`.`post_id` GROUP BY `instagram_stories`.`post_id` ORDER BY `post_id`"
     db.query(sql, (error, results, fields) => {
         if (!error) {
             // results -> Stories
             data = results; // [{story},{story}]
+
             for (let i = 0; i < data.length; i++) {
+                (data[i].member_id[0] === 'f') ? data[i].isFirm = true : data[i].isFirm = false;
                 data[i].post_time = formatTime(data[i].post_time)
                 data[i].photos = data[i].photos.split(',');
                 data[i].comments = [];
             }
             // setp 2 : GET Comments
-            var sql = "SELECT `instagram_comments`.*,UNIX_TIMESTAMP(`instagram_comments`.`comment_time`) as comment_time, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_comments` JOIN `member` WHERE `instagram_comments`.`member_id` = `member`.`member_id`";
-
+            // var sql = "SELECT `instagram_comments`.*,UNIX_TIMESTAMP(`instagram_comments`.`comment_time`) as comment_time, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_comments` JOIN `member` WHERE `instagram_comments`.`member_id` = `member`.`member_id`";
+            var sql = "SELECT `instagram_comments`.*,UNIX_TIMESTAMP(`instagram_comments`.`comment_time`) as comment_time, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_comments` JOIN `member` WHERE `instagram_comments`.`member_id` = `member`.`member_id`UNION SELECT `instagram_comments`.*,UNIX_TIMESTAMP(`instagram_comments`.`comment_time`) as comment_time, `firm_manage`.`firmname` AS `nickname`, `firm_manage`.`my_file` AS `avatar` FROM `instagram_comments` JOIN `firm_manage` WHERE `instagram_comments`.`member_id` = CONCAT('f_',`firm_manage`.`sid`) ORDER BY `comment_id`"
             db.query(sql, (error, results, fields) => {
                 if (!error) {
                     // results -> Comments
                     for (let i = 0; i < results.length; i++) {
+                        (results[i].member_id[0] === 'f') ? results[i].isFirm = true : results[i].isFirm = false;
                         let index = data.findIndex(story => story.post_id === results[i].post_id);
                         if (index !== -1) {
                             results[i].subcomments = [];
@@ -231,10 +237,14 @@ router.get('/allData', (req, res) => {
                     }
 
                     // setp 3 : GET SubComments
-                    var sql = "SELECT `instagram_subcomments`.*,UNIX_TIMESTAMP(`instagram_subcomments`.`subcomment_time`) as subcomment_time, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_subcomments` JOIN `member` WHERE `instagram_subcomments`.`member_id` = `member`.`member_id`";
+                    // var sql = "SELECT `instagram_subcomments`.*,UNIX_TIMESTAMP(`instagram_subcomments`.`subcomment_time`) as subcomment_time, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_subcomments` JOIN `member` WHERE `instagram_subcomments`.`member_id` = `member`.`member_id`";
+                    var sql = "SELECT `instagram_subcomments`.*,UNIX_TIMESTAMP(`instagram_subcomments`.`subcomment_time`) as subcomment_time, `member`.`nickname`,`member`.`photo` AS `avatar` FROM `instagram_subcomments` JOIN `member` WHERE `instagram_subcomments`.`member_id` = `member`.`member_id` UNION SELECT `instagram_subcomments`.*,UNIX_TIMESTAMP(`instagram_subcomments`.`subcomment_time`) as subcomment_time, `firm_manage`.`firmname` AS `nickname`,`firm_manage`.`my_file` AS `avatar` FROM `instagram_subcomments` JOIN `firm_manage` WHERE `instagram_subcomments`.`member_id` =  CONCAT('f_',`firm_manage`.`sid`) ORDER BY `subcomment_id`"
                     db.query(sql, (error, results, fields) => {
                         if (!error) {
                             // results -> SubComments
+                            for (let i = 0; i < results.length; i++) {
+                                (results[i].member_id[0] === 'f') ? results[i].isFirm = true : results[i].isFirm = false;
+                            }
                             for (let i = 0; i < data.length; i++) {
                                 for (let j = 0; j < results.length; j++) {
                                     let index = data[i].comments.findIndex(comment => comment.comment_id === results[j].comment_id);
@@ -264,6 +274,7 @@ router.post('/storyState', (req, res) => {
     var data = [[], [], []]  // [ favorite [], bookmark [], myPost [] ]
     var sql = "SELECT * FROM `instagram_favorite` WHERE `member_id` = ? AND `isFavorite` = 1"
     db.query(sql, req.body.userId, (error, results, fields) => {
+        console.log(error)
         // 有按喜歡的 丟到陣列
         for (let i = 0; i < results.length; i++) {
             data[0].push(results[i].post_id)
