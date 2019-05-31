@@ -9,17 +9,17 @@ const multer = require('multer')
 
 // 上傳檔案設定
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: function(req, file, cb) {
     cb(null, './public/images/firm')
   },
-  filename: function (req, file, cb) {
+  filename: function(req, file, cb) {
     //   cb(null, file.fieldname + '-' + Date.now())
     cb(null, Date.now() + '.' + file.originalname.split('.')[1])
   },
 })
 const upload = multer({ storage: storage })
 
-router.get('/userInfo', function (req, res) {
+router.get('/userInfo', function(req, res) {
   const data = { success: false, isFirm: req.session.isFirm }
   if (req.session.isFirm) {
     let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
@@ -54,12 +54,14 @@ router.get('/userInfo', function (req, res) {
 })
 
 //登入
-router.post('/firmLogin', function (req, res) {
+router.post('/firmLogin', function(req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
   db.query(sql, [data.body.account], (error, results, fields) => {
-    if (error) throw error
+    if (error) {
+      throw error
+    }
     if (!results[0].islive) {
       data.message = '此帳號未被激活'
       res.json({ data })
@@ -82,13 +84,13 @@ router.post('/firmLogin', function (req, res) {
   })
 })
 
-router.post('/logOut', function (req, res) {
+router.post('/logOut', function(req, res) {
   req.session.destroy()
   res.json('成功登出')
 })
 
 //註冊
-router.post('/firmRegister', function (req, res) {
+router.post('/firmRegister', function(req, res) {
   const registerTime = new Date()
   const data = { success: false, message: '' }
   const code = uuidv1()
@@ -142,7 +144,7 @@ router.post('/firmRegister', function (req, res) {
             code +
             '<a/><h2 style="font-weight: 400">此郵件為FUNer平台所發送，若您未在FUNer註冊帳號，請忽略此郵件</h2><h2 style="font-weight: 400">FUNer團隊 敬上</h2>',
         }
-        transporter.sendMail(options, function (error, info) {
+        transporter.sendMail(options, function(error, info) {
           if (error) {
             console.log('EEEEEEEEEEEE', error)
           } else {
@@ -159,7 +161,7 @@ router.post('/firmRegister', function (req, res) {
   )
 })
 //checkCode
-router.post('/checkCode', function (req, res) {
+router.post('/checkCode', function(req, res) {
   console.log(req.body.code)
   const data = { success: false, message: '' }
   let sql = 'SELECT * FROM `firm_manage` WHERE `code` = (?)'
@@ -195,7 +197,7 @@ router.post('/checkCode', function (req, res) {
   })
 })
 // check
-router.post('/unicodeCheck', function (req, res) {
+router.post('/unicodeCheck', function(req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `uniform_number` = (?)'
@@ -215,7 +217,7 @@ router.post('/unicodeCheck', function (req, res) {
   })
 })
 
-router.post('/accountCheck', function (req, res) {
+router.post('/accountCheck', function(req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
@@ -235,7 +237,7 @@ router.post('/accountCheck', function (req, res) {
   })
 })
 
-router.post('/emailCheck', function (req, res) {
+router.post('/emailCheck', function(req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
@@ -256,7 +258,7 @@ router.post('/emailCheck', function (req, res) {
 })
 
 //帳號設定
-router.post('/firmEdit', function (req, res) {
+router.post('/firmEdit', function(req, res) {
   const data = { success: false, message: '' }
   let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
   db.query(
@@ -288,7 +290,7 @@ router.post('/firmEdit', function (req, res) {
     }
   )
 })
-router.post('/passwordEdit', function (req, res) {
+router.post('/passwordEdit', function(req, res) {
   const data = { success: false, message: '' }
   let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
   db.query(
@@ -315,7 +317,7 @@ router.post('/passwordEdit', function (req, res) {
 })
 
 //場地資料設定
-router.get('/firmInfo', function (req, res) {
+router.get('/firmInfo', function(req, res) {
   const data = { success: false, message: '' }
   let sql = 'SELECT * FROM `site_manage` WHERE `firm_id` = (?)'
   db.query(sql, [req.session.userSid], (error, results, fields) => {
@@ -349,7 +351,7 @@ router.get('/firmInfo', function (req, res) {
   })
 })
 //廠商logo更新
-router.post('/avatarUpdate', upload.array('file'), function (req, res) {
+router.post('/avatarUpdate', upload.array('file'), function(req, res) {
   const data = { success: false, message: '' }
   let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
   db.query(
@@ -371,7 +373,7 @@ router.post('/avatarUpdate', upload.array('file'), function (req, res) {
 })
 
 //新增
-router.post('/insertAccount', upload.array('files'), function (req, res) {
+router.post('/insertAccount', upload.array('files'), function(req, res) {
   const data = { success: false, message: '' }
 
   //地址轉換經緯度
@@ -443,7 +445,7 @@ router.post('/insertAccount', upload.array('files'), function (req, res) {
     })
 })
 //更新
-router.post('/updateAccount', upload.array('files'), function (req, res) {
+router.post('/updateAccount', upload.array('files'), function(req, res) {
   const data = { success: false, message: '' }
 
   //地址轉換經緯度

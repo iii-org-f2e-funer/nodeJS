@@ -13,7 +13,9 @@ router.post('/userLogin', function(req, res) {
   data.body = req.body
   let sql = 'SELECT * FROM `member` WHERE `account` = (?)'
   db.query(sql, [data.body.account], (error, results, fields) => {
-    if (error) throw error
+    if (error) {
+      throw error
+    }
     if (results[0] === undefined) {
       data.message = '帳號或密碼錯誤'
       res.json({ data })
@@ -351,9 +353,9 @@ router.post('/UserUpdateAccount', function(req, res) {
 
 // 訂單查詢
 router.get('/productorder', (req, res) => {
-  let sql = "SELECT * FROM `product_order` ORDER BY `order_sid` DESC"
+  let sql = 'SELECT * FROM `product_order` ORDER BY `order_sid` DESC'
   db.query(sql, (error, results, fields) => {
-      res.json(results)
+    res.json(results)
   })
 })
 
