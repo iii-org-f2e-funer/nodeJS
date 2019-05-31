@@ -20,7 +20,7 @@ router.post('/userLogin', function(req, res) {
     }
     if (results[0].password === req.body.password) {
       req.session.user = req.body.account
-      req.session.userSid = results[0].sid
+      req.session.userSid = results[0].member_id
       req.session.isFirm = false
       data.success = true
       data.member_id = results[0].member_id

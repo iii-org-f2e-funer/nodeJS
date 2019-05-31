@@ -45,8 +45,8 @@ router.get('/userInfo', function(req, res) {
         data.body = results2[0]
         // date轉換
         data.body.birthday = moment(data.body.birthday).format('YYYY-MM-DD')
-        console.log(moment(data.body.birthday))
-        console.log(moment(data.body.birthday, ['YYYY-MM-DD']))
+        // console.log(moment(data.body.birthday))
+        // console.log(moment(data.body.birthday, ['YYYY-MM-DD']))
         res.json(data)
       }
     })
