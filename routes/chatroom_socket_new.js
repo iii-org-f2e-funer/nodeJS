@@ -80,6 +80,34 @@ router.get('/message/:user_id', (req, res) => {
   })
 })
 
+//公開會員頁面
+router.get('/openMemberPage/:to_id', (req, res) => {
+  console.log('req id:', req.params.to_id)
+  var OMPdata = []
+  db.queryAsync({
+    sql: `SELECT m.nickname nickname, m.birthday birthday, m.gender gender, m.city location, m.intro about FROM (SELECT * FROM member WHERE member_id=${
+      req.params.to_id
+    }) as m `,
+    timeout: 40000, // 40s
+  }).then(data => {
+    let birthYear = parseInt(moment(data[0].birthday).format('YYYY'))
+    let nowYear = parseInt(new Date().getFullYear())
+    data[0].birthday = nowYear - birthYear + 1
+    console.log(data[0])
+    OMPdata = [data[0], ...OMPdata]
+    db.queryAsync({
+      sql: `SELECT * FROM member_favorite WHERE member_id=${req.params.to_id} `,
+      timeout: 40000, // 40s
+    }).then(game => {
+
+      OMPdata = [game[0], ...OMPdata]
+      console.log(game[0])
+      console.log('OMP', OMPdata)
+      res.json(OMPdata)
+    })
+  })
+})
+
 router.get('/message/:user_id/:to_id', (req, res) => {
   console.log('req id:', req.params.user_id)
   console.log('to id:', req.params.to_id)
@@ -111,35 +139,31 @@ router.get('/message/:user_id/:to_id', (req, res) => {
 
 // SELECT f.*, x.name user_name,y.name friend_name FROM(SELECT * FROM friend_list where user_id=2 OR friend_id=2) as f JOIN member x ON(f.user_id=x.member_id) JOIN member y ON (f.friend_id=y.member_id)
 router.get('/friendList/:user_id', (req, res) => {
-  let reqID=req.params.user_id
+  let reqID = req.params.user_id
   console.log('req id:', reqID)
   db.queryAsync({
     sql: `SELECT f.*, x.name user_name,y.name friend_name FROM(SELECT * FROM friend_list where user_id=${reqID} OR friend_id=${reqID}) as f JOIN member x ON(f.user_id=x.member_id) JOIN member y ON (f.friend_id=y.member_id) `,
     timeout: 40000, // 40s
   }).then(data => {
-    
-    let friendData=[]
-    console.log("allFriend:",data)
+    let friendData = []
+    console.log('allFriend:', data)
     data.map((ele, index, arr) => {
-      let friendList={}
-      if(ele.user_id==reqID){
-        friendList.friendID=ele.friend_id
-        friendList.friendName=ele.friend_name
-        friendList.status=ele.status
-        
-      }else if(ele.friend_id==reqID){
-        friendList.friendID=ele.user_id
-        friendList.friendName=ele.user_name
-        friendList.status=ele.status
+      let friendList = {}
+      if (ele.user_id == reqID) {
+        friendList.friendID = ele.friend_id
+        friendList.friendName = ele.friend_name
+        friendList.status = ele.status
+      } else if (ele.friend_id == reqID) {
+        friendList.friendID = ele.user_id
+        friendList.friendName = ele.user_name
+        friendList.status = ele.status
       }
-     friendData=[friendList, ...friendData]
+      friendData = [friendList, ...friendData]
     })
-    console.log("FriendData:",friendData)
+    console.log('FriendData:', friendData)
     res.json(friendData)
   })
 })
-
-
 
 //POST DATA
 router.post('/message/:user_id/:to_id', (req, res) => {
