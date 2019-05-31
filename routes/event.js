@@ -19,7 +19,7 @@ router.post('/imgupload', upload.single('pt_img'),(req,res) =>{
 
     let ext ='';
     let filename = req.file.filename;
-    let path = '//localhost:3002/img/event/'
+    let path = '//localhost:3002/images/event/'
 
     if(req.file && req.file.originalname){
       switch(req.file.mimetype){
@@ -30,12 +30,12 @@ router.post('/imgupload', upload.single('pt_img'),(req,res) =>{
               ext = '.jpg';
             }
             fs.createReadStream(req.file.path)
-            .pipe(fs.createWriteStream(__dirname + '/../public/img/event/' + filename + ext));
+            .pipe(fs.createWriteStream(__dirname + '/../public/images/event/' + filename + ext));
 
             res.json({
                 success: true,
                 file: filename + ext,
-                filepath: path + filename + ext,
+                filepath:  filename + ext,
                 name: req.body.name
             });
             return;

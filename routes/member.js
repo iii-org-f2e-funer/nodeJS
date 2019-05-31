@@ -350,5 +350,11 @@ router.post('/UserUpdateAccount', function(req, res) {
 })
 
 // 訂單查詢
+router.get('/productorder', (req, res) => {
+  let sql = "SELECT * FROM `product_order` ORDER BY `order_sid` DESC"
+  db.query(sql, (error, results, fields) => {
+      res.json(results)
+  })
+})
 
 module.exports = router
