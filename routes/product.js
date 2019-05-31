@@ -75,6 +75,9 @@ router.post('/product_order', function (req, res) {
     }
   )
 })
+
+
+
 router.get('/firm', (req, res) => {
   let sql = "SELECT `sid`,`firmname` FROM `firm_manage` WHERE 1"
   db.query(sql, (error, results, fields) => {
@@ -82,4 +85,10 @@ router.get('/firm', (req, res) => {
   });
 });
 
+router.get('/firm_order', (req, res) => {
+  let sql = "SELECT * FROM `product_order` ORDER BY `order_sid` DESC"
+  db.query(sql, (error, results, fields) => {
+      res.json(results);
+  });
+});
 module.exports = router;
