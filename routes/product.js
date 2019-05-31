@@ -18,7 +18,6 @@ router.get('/productlist', (req, res) => {
     db.query(sql, (error, results, fields) => {
         res.json(results);
     });
-
 });
 
 //product-picture
@@ -27,7 +26,6 @@ router.get('/productlist2', (req, res) => {
     db.query(sql, (error, results, fields) => {
         res.json(results);
     });
-
 });
 
 
@@ -36,7 +34,7 @@ router.get('/productlist2', (req, res) => {
 router.post('/product_order', function (req, res) {
   const data = { success: false, message: '' }
   console.log(req.body)
-  let sql = 'INSERT INTO `product_order`(`order_sid`, `login_user_sid`, `paymethod`, `getmethod`, `Freight`, `totalprice`, `geter_name`, `geter_addr`, `geter_city`, `geter_dist`, `geter_email`, `geter_phone`, `order_name`, `order_city`, `order_dist`, `order_addr`, `order_email`, `order_phone`, `paid`, `cre_date`, `allcart`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+  let sql = 'INSERT INTO `product_order`(`order_sid`, `login_user_sid`, `paymethod`, `getmethod`, `Freight`, `totalprice`, `geter_name`, `geter_addr`, `geter_city`, `geter_dist`, `geter_email`, `geter_phone`, `order_name`, `order_city`, `order_dist`, `order_addr`, `order_email`, `order_phone`, `paid`, `cre_date`, `allcart`,`seller`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
   db.query(
     sql,
     [
@@ -60,7 +58,8 @@ router.post('/product_order', function (req, res) {
          req.body.order_phone,
          req.body.paid,
          new Date(),
-         req.body.allcart,
+         req.body.choose_order,
+         req.body.seller,
     ],
     (error, results, fields) => {
       if (error) throw error
@@ -76,6 +75,11 @@ router.post('/product_order', function (req, res) {
     }
   )
 })
-
+router.get('/firm', (req, res) => {
+  let sql = "SELECT `sid`,`firmname` FROM `firm_manage` WHERE 1"
+  db.query(sql, (error, results, fields) => {
+      res.json(results);
+  });
+});
 
 module.exports = router;
