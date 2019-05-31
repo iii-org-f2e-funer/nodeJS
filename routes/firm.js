@@ -56,30 +56,32 @@ router.get('/userInfo', function(req, res) {
 //登入
 router.post('/firmLogin', function(req, res) {
   const data = { success: false, message: '' }
-  data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
-  db.query(sql, [data.body.account], (error, results, fields) => {
-    if (error) {
-      throw error
-    }
-    if (!results[0].islive) {
-      data.message = '此帳號未被激活'
-      res.json({ data })
-    }
+  db.query(sql, [req.body.account], (error, results, fields) => {
+    if (error) throw error
     if (results[0] === undefined) {
       data.message = '帳號或密碼錯誤'
       res.json({ data })
+      return
     }
-    if (results[0].password === data.body.password) {
-      req.session.user = data.body.account
+    if (results[0].password === req.body.password) {
+      if (!results[0].islive) {
+        data.message = '此帳號未被激活'
+        res.json({ data })
+        return
+      }
+      req.session.user = req.body.account
       req.session.userSid = results[0].sid
       req.session.isFirm = true
       data.success = true
       data.message = '登入成功'
+      data.body = req.body
       res.json({ data })
+      return
     } else {
       data.message = '帳號或密碼錯誤'
       res.json({ data })
+      return
     }
   })
 })
@@ -170,6 +172,7 @@ router.post('/checkCode', function(req, res) {
     if (results[0] === undefined) {
       data.message = '找不到code，激活失敗'
       res.json(data)
+      return
     } else {
       console.log(results[0].sid)
       let sql2 = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
@@ -191,6 +194,7 @@ router.post('/checkCode', function(req, res) {
             data.message = 'islive=false激活失敗'
           }
           res.json(data)
+          return
         }
       )
     }

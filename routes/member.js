@@ -10,27 +10,28 @@ const db = require('../utility/db.js')
 //登入
 router.post('/userLogin', function(req, res) {
   const data = { success: false, message: '' }
-  data.body = req.body
   let sql = 'SELECT * FROM `member` WHERE `account` = (?)'
-  db.query(sql, [data.body.account], (error, results, fields) => {
-    if (error) {
-      throw error
-    }
+  db.query(sql, [req.body.account], (error, results, fields) => {
+    if (error) throw error
     if (results[0] === undefined) {
       data.message = '帳號或密碼錯誤'
       res.json({ data })
+      return
     }
-    if (results[0].password === data.body.password) {
-      req.session.user = data.body.account
+    if (results[0].password === req.body.password) {
+      req.session.user = req.body.account
       req.session.userSid = results[0].sid
       req.session.isFirm = false
       data.success = true
       data.member_id = results[0].member_id
+      data.body = req.body
       data.message = '登入成功'
       res.json({ data })
+      return
     } else {
       data.message = '帳號或密碼錯誤'
       res.json({ data })
+      return
     }
   })
 })
