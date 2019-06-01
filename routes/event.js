@@ -55,18 +55,6 @@ router.post('/loadadd', upload.single(),(req,res) =>{
   })
 })
 
-//抓登入帳號sid=>account
-router.post('/loginaccount', upload.single(),(req,res) =>{
-  // console.log(req.body.member_id)
-  let sql ='SELECT `account`,`city`,`site` FROM `member` WHERE `member_id` = (?)'
-  
-  db.query(sql, [req.body.member_id], (error, results, fields) =>{
-    // console.log(results)
-    res.json(results)
-  })
-})
-
-
 //新增揪團
 router.post('/newptsubmit', upload.single(),(req,res) =>{
 
@@ -119,6 +107,19 @@ router.post('/editpt', upload.single(),(req,res) =>{
     })
 });
 
+//取消揪團
+router.post('/cancelhost',function (req, res) {
+  console.log(req.body.pt_sid)
+  let sql ='UPDATE `party_manage` SET `pt_state`= 0 WHERE `pt_sid` = (?)'
+  db.query(sql, [ req.body.pt_sid], (error, results, fields) => {
+  
+    if (!error) {
+      res.json({ success: true })
+      } else {
+      res.json({ success: false })
+      }
+    })
+  });
 
 //ptlist paginate
 router.post('/ptlist',upload.none(),function (req, res) {  
@@ -127,7 +128,7 @@ router.post('/ptlist',upload.none(),function (req, res) {
   let nextOffset = offset + PER_PAGE;
   let previousOffset = offset - PER_PAGE < 1 ? 0 : offset - PER_PAGE;
 
-  let sql = 'SELECT `party_manage`.*,`member`.`photo` FROM `party_manage` LEFT JOIN `member` ON `party_manage`.`pt_host` = `member`.`account` WHERE `party_manage`.`pt_state` = 1 ORDER BY `pt_sid` desc'
+  let sql = 'SELECT `party_manage`.*,`member`.`photo`,`member`.`member_id` FROM `party_manage` LEFT JOIN `member` ON `party_manage`.`pt_host` = `member`.`account` WHERE `party_manage`.`pt_state` = 1 ORDER BY `pt_sid` desc'
   db.query(sql, (error, results, fields) => {
     let items = results;    
     
@@ -161,7 +162,7 @@ router.post('/ptinfo',function (req, res) {
   db.query(sql, [ptsid], (error, results, fields) => {
     let pt_host = results[0].pt_host
     // console.log(pt_host)
-    let membersql = 'SELECT `photo`, `name`, `nickname` FROM `member` WHERE `account` = (?)';
+    let membersql = 'SELECT `photo`, `name`, `nickname`,`member_id` FROM `member` WHERE `account` = (?)';
       db.query(membersql,[pt_host],(error, results2, fields) =>{
         results = Object.assign(results[0],results2[0])
 
@@ -172,9 +173,9 @@ router.post('/ptinfo',function (req, res) {
 
 //報名者名單
 router.post('/ptapplyer',function (req, res) {  
-  
+    console.log(req.body)
   let ptsid=req.body.ptsid;
-  let sql = 'SELECT `party_apply`.* ,`member`.`photo`,`member`.`name` FROM `party_apply` LEFT JOIN `member` ON `party_apply`.`pt_applymember` = `member`.`account` WHERE `party_apply`.`pt_sid`= (?)';
+  let sql = 'SELECT `party_apply`.* ,`member`.`photo`,`member`.`name`,`member`.`member_id` FROM `party_apply` LEFT JOIN `member` ON `party_apply`.`pt_applymember` = `member`.`account` WHERE `party_apply`.`pt_sid`= (?) AND `pt_applystatus` != "cancel"';
 
   db.query(sql, [ptsid], (error, results, fields) => {
         res.json(results)
@@ -191,7 +192,7 @@ router.post('/apply',function (req, res) {
   let ptapplymem=req.body.ptapplymem
   let applyresult = {success: false, errormsg:'',applyinfo:''}
 
-  let testsql = 'SELECT COUNT(1) FROM `party_apply` WHERE `pt_sid` = (?) AND `pt_applymember` = (?)'
+  let testsql = 'SELECT COUNT(1) FROM `party_apply` WHERE `pt_sid` = (?) AND `pt_applymember` = (?) AND `pt_applystatus` ="pending"'
   db.query(testsql, [ptsid, ptapplymem], (error, results, fields) => {
 
     if(results[0]['COUNT(1)'] == 0){
@@ -208,8 +209,51 @@ router.post('/apply',function (req, res) {
       return res.json(applyresult)
     }
 })
-
- 
 })
 
+//取消報名揪團
+router.post('/cancelapply',function (req, res) {
+console.log(req.body.applysid)
+let sql ='UPDATE `party_apply` SET `pt_applystatus` = "cancel" WHERE `party_apply`.`pt_applysid` = (?)'
+db.query(sql, [ req.body.applysid], (error, results, fields) => {
+
+  if (!error) {
+    res.json({ success: true })
+    } else {
+    res.json({ success: false })
+    }
+  })
+});
+
+//審核報名
+router.post('/commit',function (req, res) {
+  console.log(req.body)
+  let sql ='UPDATE `party_apply` SET `pt_applystatus`= (?) WHERE `pt_applysid` = (?)'
+  db.query(sql, [ req.body.result,req.body.pt_applysid], (error, results, fields) => {
+  
+    if (!error) {
+      res.json({ success: true })
+      } else {
+      res.json({ success: false })
+      }
+    })
+  });
+
+//抓取使用者的申請紀錄
+router.post('/applyedpt',function (req, res) {  
+  let sql = 'SELECT * FROM `party_apply` LEFT JOIN `party_manage` ON `party_apply`.`pt_sid`=`party_manage`.`pt_sid` WHERE `party_apply`.`pt_applymember` = (?) AND `party_manage`.`pt_state`=1 AND `pt_applystatus` != "cancel"'
+  db.query(sql, [req.body.account], (error, results, fields) => {
+    // console.log(results)
+    res.json(results)
+  })
+   })
+
+   //抓取使用者的開團紀錄
+router.post('/hostedpt',function (req, res) {  
+  let sql = 'SELECT * FROM `party_manage` WHERE `pt_host` = (?)'
+  db.query(sql, [req.body.account], (error, results, fields) => {
+    // console.log(results)
+    res.json(results)
+  })
+   })
 module.exports = router;
