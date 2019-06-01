@@ -99,7 +99,6 @@ router.get('/openMemberPage/:to_id', (req, res) => {
       sql: `SELECT * FROM member_favorite WHERE member_id=${req.params.to_id} `,
       timeout: 40000, // 40s
     }).then(game => {
-
       OMPdata = [game[0], ...OMPdata]
       console.log(game[0])
       console.log('OMP', OMPdata)
@@ -163,6 +162,55 @@ router.get('/friendList/:user_id', (req, res) => {
     console.log('FriendData:', friendData)
     res.json(friendData)
   })
+})
+//POST FriendList
+router.post('/friendList/:to_id', (req, res) => {
+  var user_id = req.body.applicant
+  var toID = req.params.to_id
+  console.log("POSTF",user_id)
+  console.log("POSTF",toID)
+
+  db.queryAsync({
+    sql: `SELECT * FROM friend_list WHERE (user_id=${user_id} OR user_id=${toID}) && (friend_id=${toID} OR friend_id=${user_id}) `,
+    timeout: 40000, // 40s
+  }).then(data => {
+    console.log(data[0])
+    console.log(!data[0])
+    if (!data[0]) {
+      db.queryAsync('INSERT INTO `friend_list` SET ? ', {
+        user_id: user_id,
+        friend_id: toID,
+        status: 'review',
+      }).then(result => {
+        if (result.affectedRows === 1) {
+          console.log('insert data success')
+          res.json("INSERT OK")
+        }
+      })
+    } else if (data[0].status == 'review') {
+      //UPDATE
+      db.queryAsync(
+        `UPDATE friend_list SET  status = ? WHERE sid = ${data[0].sid}`,
+        ['delete']
+      ).then(result => {
+        if (result.changedRows >= 1) {
+          console.log('UPDATE SUCCESS')
+          res.json("UPDATE OK")
+        }
+      })
+    } else if (data[0].status == 'delete') {
+      db.queryAsync(
+        `UPDATE friend_list SET  status = ? WHERE sid = ${data[0].sid}`,
+        ['review']
+      ).then(result => {
+        if (result.changedRows >= 1) {
+          console.log('UPDATE SUCCESS')
+          res.json("UPDATE OK")
+        }
+      })
+    }
+  })
+  //
 })
 
 //POST DATA
