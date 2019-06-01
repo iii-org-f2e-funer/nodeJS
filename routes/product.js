@@ -34,7 +34,7 @@ router.get('/productlist2', (req, res) => {
 router.post('/product_order', function (req, res) {
   
   const data = { success: false, message: '' }
-  console.log(req.body)
+  // console.log(req.body)
   let sql = 'INSERT INTO `product_order`(`order_sid`, `login_user_sid`, `paymethod`, `getmethod`, `Freight`, `totalprice`, `geter_name`, `geter_addr`, `geter_city`, `geter_dist`, `geter_email`, `geter_phone`, `order_name`, `order_city`, `order_dist`, `order_addr`, `order_email`, `order_phone`, `paid`, `cre_date`, `allcart`,`seller`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
   db.query(
     sql,
