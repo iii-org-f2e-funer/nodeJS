@@ -42,12 +42,16 @@ router.get('/homeInstagram', (req, res) => {
 
     // query
     // 抓所有貼文
-    var sql = "SELECT `instagram_stories`.*,UNIX_TIMESTAMP(`instagram_stories`.`post_time`) as post_time, `member`.`nickname`,`member`.`photo` AS `avatar` , SUM(case when `instagram_favorite`.`isFavorite` = 1 then 1 else 0 end ) as favorites FROM `instagram_stories` JOIN `member` ON `instagram_stories`.`member_id` = `member`.`member_id` LEFT JOIN `instagram_favorite` ON `instagram_stories`.`post_id` = `instagram_favorite`.`post_id` GROUP BY `instagram_stories`.`post_id`"
+    // var sql = "SELECT `instagram_stories`.*,UNIX_TIMESTAMP(`instagram_stories`.`post_time`) as post_time, `member`.`nickname`,`member`.`photo` AS `avatar` , SUM(case when `instagram_favorite`.`isFavorite` = 1 then 1 else 0 end ) as favorites FROM `instagram_stories` JOIN `member` ON `instagram_stories`.`member_id` = `member`.`member_id` LEFT JOIN `instagram_favorite` ON `instagram_stories`.`post_id` = `instagram_favorite`.`post_id` GROUP BY `instagram_stories`.`post_id`"
+    var sql = "SELECT `instagram_stories`.*,UNIX_TIMESTAMP(`instagram_stories`.`post_time`) as post_time, `member`.`nickname`,`member`.`photo` AS `avatar` , SUM(case when `instagram_favorite`.`isFavorite` = 1 then 1 else 0 end ) as favorites FROM `instagram_stories` JOIN `member` ON `instagram_stories`.`member_id` = `member`.`member_id` LEFT JOIN `instagram_favorite` ON `instagram_stories`.`post_id` = `instagram_favorite`.`post_id` GROUP BY `instagram_stories`.`post_id`UNION SELECT `instagram_stories`.*,UNIX_TIMESTAMP(`instagram_stories`.`post_time`) as post_time, `firm_manage`.`firmname` AS `nickname`,`firm_manage`.`my_file` AS `avatar` , SUM(case when `instagram_favorite`.`isFavorite` = 1 then 1 else 0 end ) as favorites FROM `instagram_stories` JOIN `firm_manage` ON `instagram_stories`.`member_id` = CONCAT('f_',`firm_manage`.`sid`) LEFT JOIN `instagram_favorite` ON `instagram_stories`.`post_id` = `instagram_favorite`.`post_id` GROUP BY `instagram_stories`.`post_id` ORDER BY `post_id`"
     db.query(sql, (error, results, fields) => {
         if (!error) {
             // results -> Stories
             data = results; // [{story},{story}]
             for (let i = 0; i < data.length; i++) {
+                (data[i].member_id[0] === 'f') ? data[i].isFirm = true : data[i].isFirm = false;
+                // 轉換分行
+                data[i].content = data[i].content.replace(/\s/g,"<br />")
                 // 轉換時間
                 data[i].post_time = moment(data[i].post_time).format("M月D日 ahh:mm")
                 data[i].post_time = data[i].post_time.replace(/ am/, " 上午")
