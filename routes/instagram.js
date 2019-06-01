@@ -302,19 +302,20 @@ router.post('/storyState', (req, res) => {
 
 });
 
-// [ RowDataPacket {
-//     favorite_id: 1,
-//     member_id: 1,
-//     post_id: 1,
-//     isFavorite: 1,
-//     time: 2019-05-27T12:29:23.000Z },
-//   RowDataPacket {
-//     favorite_id: 2,
-//     member_id: 1,
-//     post_id: 2,
-//     isFavorite: 1,
-//     time: 2019-05-27T12:44:05.000Z } ]
+// get Story Fav or Book
+router.get('/getEvents', (req, res) => {
+    // { id: 1 }
 
+    var sql = "SELECT * FROM `party_manage` WHERE `pt_sid` >= 200 AND  `pt_sid` <= 250 AND `pt_state` = 1 ORDER BY RAND() LIMIT 3"
+    db.query(sql, req.body.userId, (error, results, fields) => {
+        if (!error){
+            res.json({success:true,data:results})
+        } else {
+            res.json({success:false})
+        }
+    })
+
+});
 
 // 轉換時間格式
 function formatTime(timestamp) {
