@@ -229,7 +229,7 @@ router.post('/reservation', (req, res) => {
 			console.log(SMS_Msg);
 			console.log(SMS_PhoneNum);
 			// if (status) {
-			if (status) {
+			if (1) {
 				res.send('ok');
 			}
 		} else {
