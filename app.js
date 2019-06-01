@@ -67,8 +67,13 @@ app.use('/instagram', instagram)
 const event = require('./routes/event')
 app.use('/event', event)
 
+// gamemap
 const gameMap = require('./routes/gameMap')
 app.use('/gameMap', gameMap)
+
+// notice
+const notice = require('./routes/notice')
+app.use('/notice', notice)
 
 app.listen(3002, function() {
   console.log('nodeJS started on port 3002')

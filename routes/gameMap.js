@@ -175,8 +175,6 @@ router.get('/All/:query?', (req, res) => {
 		if (results.length === 0) {
 			res.json([ 'nodata' ]);
 		} else {
-			console.log(results);
-
 			let newArray = [];
 
 			for (let index in results) {
@@ -194,7 +192,8 @@ router.get('/All/:query?', (req, res) => {
 					newArray.push(results[index]);
 
 					if (newArray.length === results.length) {
-						console.log('finish');
+						console.log(newArray);
+
 						res.json(newArray);
 					}
 				});
@@ -226,9 +225,10 @@ router.post('/reservation', (req, res) => {
 			}
 			let SMS_Msg = `FUNer場地預約成功!!//場地:${req.body.store}//人數:${req.body.people}//預約時間:${year}-${month}-${dt}`;
 			let SMS_PhoneNum = req.body.phone.replace(/\d{2}/, '+8869');
-			let status = awsSNS(SMS_Msg, SMS_PhoneNum);
+			// let status = awsSNS(SMS_Msg, SMS_PhoneNum);
 			console.log(SMS_Msg);
 			console.log(SMS_PhoneNum);
+			// if (status) {
 			if (status) {
 				res.send('ok');
 			}

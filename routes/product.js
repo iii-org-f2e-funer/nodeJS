@@ -18,7 +18,6 @@ router.get('/productlist', (req, res) => {
     db.query(sql, (error, results, fields) => {
         res.json(results);
     });
-
 });
 
 //product-picture
@@ -27,16 +26,16 @@ router.get('/productlist2', (req, res) => {
     db.query(sql, (error, results, fields) => {
         res.json(results);
     });
-
 });
 
 
 //product_order
 
 router.post('/product_order', function (req, res) {
+  
   const data = { success: false, message: '' }
-  console.log(req.body)
-  let sql = 'INSERT INTO `product_order`(`order_sid`, `login_user_sid`, `paymethod`, `getmethod`, `Freight`, `totalprice`, `geter_name`, `geter_addr`, `geter_city`, `geter_dist`, `geter_email`, `geter_phone`, `order_name`, `order_city`, `order_dist`, `order_addr`, `order_email`, `order_phone`, `paid`, `cre_date`, `allcart`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+  // console.log(req.body)
+  let sql = 'INSERT INTO `product_order`(`order_sid`, `login_user_sid`, `paymethod`, `getmethod`, `Freight`, `totalprice`, `geter_name`, `geter_addr`, `geter_city`, `geter_dist`, `geter_email`, `geter_phone`, `order_name`, `order_city`, `order_dist`, `order_addr`, `order_email`, `order_phone`, `paid`, `cre_date`, `allcart`,`seller`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
   db.query(
     sql,
     [
@@ -60,15 +59,31 @@ router.post('/product_order', function (req, res) {
          req.body.order_phone,
          req.body.paid,
          new Date(),
-         req.body.allcart,
+         req.body.choose_order,
+         req.body.seller,
     ],
     (error, results, fields) => {
       if (error) throw error
       if (results.affectedRows === 1) {
         data.success = true
-        data.message = '店家資料新增成功'
+        data.message = 'order新增成功'
         data.body = req.body
-        res.json(data)
+        // res.json(data)
+        const member_id = req.body.login_user_sid; //收信人 會員 membet_id
+        const content = "thanks for your money"; //內文 
+        const link = "" //通知點下去要連到哪
+        const img = '' //圖片網址
+        // query
+        var sql = "INSERT INTO `member_notice`(`member_id`, `content`, `link`, `img`) VALUES (?,?,?,?)"
+        db.query(sql, [member_id, content, link, img], (error, results, fields) => {
+            if (!error) {
+              data.message = 'order新增成功 notice is send'
+              res.json(data)
+            } else {
+              data.message = 'order新增成功 notice is not send'
+              res.json(data)
+            }
+        });
       } else {
         data.message = '新增失敗'
         res.json(data)
@@ -78,4 +93,18 @@ router.post('/product_order', function (req, res) {
 })
 
 
+
+router.get('/firm', (req, res) => {
+  let sql = "SELECT `sid`,`firmname` FROM `firm_manage` WHERE 1"
+  db.query(sql, (error, results, fields) => {
+      res.json(results);
+  });
+});
+
+router.get('/firm_order', (req, res) => {
+  let sql = "SELECT * FROM `product_order` ORDER BY `order_sid` DESC"
+  db.query(sql, (error, results, fields) => {
+      res.json(results);
+  });
+});
 module.exports = router;
