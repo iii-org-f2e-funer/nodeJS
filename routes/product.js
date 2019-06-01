@@ -69,7 +69,6 @@ router.post('/product_order', function (req, res) {
         data.message = 'order新增成功'
         data.body = req.body
         // res.json(data)
-
         const member_id = req.body.login_user_sid; //收信人 會員 membet_id
         const content = "thanks for your money"; //內文 
         const link = "" //通知點下去要連到哪
