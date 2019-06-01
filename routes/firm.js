@@ -553,8 +553,18 @@ router.post('/updateAccount', upload.array('files'), function (req, res) {
       console.log(error)
     })
 })
+const storage_product = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './public/images/product')
+  },
+  filename: function (req, file, cb) {
+    //   cb(null, file.fieldname + '-' + Date.now())
+    cb(null, Date.now() + '.' + file.originalname.split('.')[1])
+  },
+})
+const upload_product = multer({ storage: storage_product })
 // 商品上架
-router.post('/insertProduct', upload.array('files'), function (req, res) {
+router.post('/insertProduct', upload_product.array('files'), function (req, res) {
   const data = { success: false, message: '' }
   let sql =
     'INSERT INTO `product_manage` (sid,productName,seller_sid,price,description,sellStatus,createDate,gametype_id) VALUES (?,?,?,?,?,?,?,?)'
