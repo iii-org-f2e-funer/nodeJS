@@ -97,7 +97,7 @@ router.post('/firmRegister', function(req, res) {
   const data = { success: false, message: '' }
   const code = uuidv1()
   let sql =
-    'INSERT INTO `firm_manage`(	sid,account,password,email,firmname,uniform_number,cre_date,code,islive) VALUES (?,?,?,?,?,?,?,?,?);'
+    'INSERT INTO `firm_manage`(	sid,account,password,email,uniform_number,cre_date,code,islive) VALUES (?,?,?,?,?,?,?,?);'
   let query = db.query(
     sql,
     [
@@ -105,7 +105,6 @@ router.post('/firmRegister', function(req, res) {
       req.body.account,
       req.body.password,
       req.body.email,
-      req.body.store,
       req.body.uniform,
       registerTime,
       code,
@@ -164,7 +163,7 @@ router.post('/firmRegister', function(req, res) {
 })
 //checkCode
 router.post('/checkCode', function(req, res) {
-  console.log(req.body.code)
+  console.log('req.body.code:', req.body.code)
   const data = { success: false, message: '' }
   let sql = 'SELECT * FROM `firm_manage` WHERE `code` = (?)'
   db.query(sql, [req.body.code], (error, results, fields) => {
@@ -174,7 +173,7 @@ router.post('/checkCode', function(req, res) {
       res.json(data)
       return
     } else {
-      console.log(results[0].sid)
+      console.log('results[0].sid:', results[0].sid)
       let sql2 = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
       db.query(
         sql2,
@@ -200,7 +199,39 @@ router.post('/checkCode', function(req, res) {
     }
   })
 })
-// check
+// login code info
+router.post('/codeInfo', function(req, res) {
+  console.log('req.body', req.body)
+  const data = { success: false, message: '' }
+  let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
+  db.query(
+    sql,
+    [
+      {
+        firmname: req.body.firmname,
+        phone: req.body.phone,
+        city: req.body.city,
+        dist: req.body.dist,
+        address: req.body.address,
+        contacter: req.body.contacter,
+      },
+      req.body.sid,
+    ],
+    (error, results, fields) => {
+      if (error) throw error
+      if (results.affectedRows === 1) {
+        data.success = true
+        data.message = '帳號資料修改成功'
+        res.json(data)
+      } else {
+        data.message = '修改失敗'
+        res.json(data)
+      }
+    }
+  )
+})
+
+// register check
 router.post('/unicodeCheck', function(req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
