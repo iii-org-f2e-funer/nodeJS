@@ -175,8 +175,6 @@ router.get('/All/:query?', (req, res) => {
 		if (results.length === 0) {
 			res.json([ 'nodata' ]);
 		} else {
-			console.log(results);
-
 			let newArray = [];
 
 			for (let index in results) {
@@ -194,7 +192,8 @@ router.get('/All/:query?', (req, res) => {
 					newArray.push(results[index]);
 
 					if (newArray.length === results.length) {
-						console.log('finish');
+						console.log(newArray);
+
 						res.json(newArray);
 					}
 				});
