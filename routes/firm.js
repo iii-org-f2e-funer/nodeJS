@@ -20,6 +20,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage })
 
 router.get('/userInfo', function(req, res) {
+  console.log('firm', req.session)
   const data = { success: false, isFirm: req.session.isFirm }
   if (req.session.isFirm) {
     let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
