@@ -63,7 +63,7 @@ router.get('/sid/:sidCode', (req, res) => {
 				}
 				results[index]['imageArray'] = imgArray;
 				newArray.push(results[index]);
-				console.log('process....');
+				// console.log('process....');
 				if (newArray.length === results.length) {
 					res.json(newArray);
 				}
@@ -105,9 +105,9 @@ router.get('/city/:cityCode?', (req, res) => {
 				}
 				results[index]['imageArray'] = imgArray;
 				newArray.push(results[index]);
-				console.log('process....');
+				// console.log('process....');
 				if (newArray.length === results.length) {
-					console.log('finish');
+					// console.log('finish');
 					res.json(newArray);
 				}
 			});
@@ -192,7 +192,7 @@ router.get('/All/:query?', (req, res) => {
 					newArray.push(results[index]);
 
 					if (newArray.length === results.length) {
-						console.log(newArray);
+						// console.log(newArray);
 
 						res.json(newArray);
 					}
@@ -201,17 +201,32 @@ router.get('/All/:query?', (req, res) => {
 		}
 	});
 });
-
+router.get('/test', (req, res) => {
+	// console.log(req.session);
+	res.json({ success: true });
+});
 router.post('/reservation', (req, res) => {
-	console.log(req.body);
-	let initData = [ req.body.name, req.body.phone, req.body.people, req.body.date, 'sampleremark' ];
-	initData.unshift(21047); /////////userID
+	// console.log(req.session);
+	console.log(req.body.date);
+	let initData = [
+		req.body.userId,
+		req.body.firm_id,
+		req.body.phone,
+		req.body.name,
+		req.body.people,
+		req.body.date,
+		req.body.store,
+		'NoRemark'
+	];
+	// initData.unshift(21047); /////////userID
 	let sql =
-		'INSERT INTO `site_reservation` ( `user_id`, `name`, `phone`, `peoples`, `date`, `remark`)  VALUES ( ?, ?, ?, ?, ?, ?);';
+		'INSERT INTO `site_reservation` ( `user_id`, `site_id`, `phone`, `name`, `peoples`, `date`, site_name, `remark`) VALUES ( ?, ?, ?, ?, ?, ?, ?,?);';
+	// 'INSERT INTO `site_reservation` ( `user_id`, `name`, `phone`, `peoples`, `date`, `remark`)  VALUES ( ?, ?, ?, ?, ?, ?);';
+
 	let query = db.query(sql, initData, (error, results, fields) => {
 		if (error) throw error;
 		if (results.affectedRows === 1) {
-			console.log(req.body);
+			// console.log(req.body);
 			date = new Date(req.body.date);
 			year = date.getFullYear();
 			month = date.getMonth() + 1;
@@ -235,6 +250,7 @@ router.post('/reservation', (req, res) => {
 		} else {
 		}
 	});
+	console.log(query.sql);
 });
 
 module.exports = router;
