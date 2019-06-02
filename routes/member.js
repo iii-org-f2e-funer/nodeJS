@@ -8,7 +8,7 @@ const moment = require('moment')
 const db = require('../utility/db.js')
 
 //登入
-router.post('/userLogin', function (req, res) {
+router.post('/userLogin', function(req, res) {
   const data = { success: false, message: '' }
   let sql = 'SELECT * FROM `member` WHERE `account` = (?)'
   db.query(sql, [req.body.account], (error, results, fields) => {
@@ -36,13 +36,13 @@ router.post('/userLogin', function (req, res) {
   })
 })
 
-router.post('/logOut', function (req, res) {
+router.post('/logOut', function(req, res) {
   req.session.destroy()
   res.json('成功登出')
 })
 
 //註冊
-router.post('/userRegister', function (req, res) {
+router.post('/userRegister', function(req, res) {
   const registerTime = new Date()
   const data = { success: false, message: '' }
   const code = uuidv1()
@@ -123,7 +123,7 @@ router.post('/userRegister', function (req, res) {
 //   })
 // })
 
-router.post('/accountCheck', function (req, res) {
+router.post('/accountCheck', function(req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `firm_manage` WHERE `account` = (?)'
@@ -143,7 +143,7 @@ router.post('/accountCheck', function (req, res) {
   })
 })
 
-router.post('/emailCheck', function (req, res) {
+router.post('/emailCheck', function(req, res) {
   const data = { success: false, message: '' }
   data.body = req.body
   let sql = 'SELECT * FROM `member` WHERE `account` = (?)'
@@ -164,7 +164,7 @@ router.post('/emailCheck', function (req, res) {
 })
 
 //帳號設定
-router.post('/memberEdit', function (req, res) {
+router.post('/memberEdit', function(req, res) {
   const data = { success: false, message: '' }
   let sql = 'UPDATE `member` SET ? WHERE `member_id` = ?'
   db.query(
@@ -198,7 +198,7 @@ router.post('/memberEdit', function (req, res) {
   )
 })
 
-router.post('/passwordEdit', function (req, res) {
+router.post('/passwordEdit', function(req, res) {
   const data = { success: false, message: '' }
   let sql = 'UPDATE `member` SET ? WHERE `member_id` = ?'
   db.query(
@@ -256,7 +256,7 @@ router.post('/passwordEdit', function (req, res) {
 //   })
 // })
 //新增
-router.post('/insertAccount', function (req, res) {
+router.post('/insertAccount', function(req, res) {
   let url =
     'https://maps.googleapis.com/maps/api/geocode/json?address=' +
     encodeURI(req.body.county + req.body.dist + req.body.address) +
@@ -310,7 +310,7 @@ router.post('/insertAccount', function (req, res) {
     })
 })
 //更新
-router.post('/UserUpdateAccount', function (req, res) {
+router.post('/UserUpdateAccount', function(req, res) {
   let url =
     'https://maps.googleapis.com/maps/api/geocode/json?address=' +
     encodeURI(req.body.county + req.body.dist + req.body.address) +
@@ -330,7 +330,6 @@ router.post('/UserUpdateAccount', function (req, res) {
           {
             account: req.body.account,
             password: req.body.password,
-            nickname: req.body.nickname,
             email: req.body.email,
             name: req.body.name,
             nickname: req.body.nickname,
