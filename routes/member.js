@@ -41,6 +41,21 @@ router.post('/logOut', function (req, res) {
 })
 
 
+const multer = require('multer');
+// 上傳檔案設定
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+      cb(null, './public/images/member')
+  },
+  filename: function (req, file, cb) {
+      //   cb(null, file.fieldname + '-' + Date.now())
+      cb(null, Date.now() + '.' + file.originalname.split('.')[1])
+  }
+})
+const upload = multer({ storage: storage })
+
+
+
 //註冊
 router.post('/userRegister', function (req, res) {
   console.log("FFFFFFFFFFFFFFFFFFFFUCKOU")
@@ -274,5 +289,23 @@ router.get('/productorder', (req, res) => {
     res.json(results)
   })
 })
+
+
+// updatePhoto
+router.post('/updatePhoto', upload.single('photo'), (req, res) => {
+  // console.log(req)
+  // console.log(req.session)
+ 
+  // query
+  var sql = "UPDATE `member` SET `photo`= ? WHERE `member_id`= ?";
+  db.query(sql, [req.file.filename,req.session.userSid], (error, results, fields) => {
+      if (!error) {
+          res.json({ success: true })
+      } else {
+          console.log(error)
+          res.json({ success: false })
+      }
+  });
+});
 
 module.exports = router
