@@ -160,22 +160,21 @@ router.get('/friendList/:user_id', (req, res) => {
       friendData = [friendList, ...friendData]
     })
     console.log('FriendData:', friendData)
-    res.json(friendData)
+    res.json([data,friendData])
   })
 })
 //POST FriendList
 router.post('/friendList/:to_id', (req, res) => {
   var user_id = req.body.applicant
   var toID = req.params.to_id
-  console.log("POSTF",user_id)
-  console.log("POSTF",toID)
+  const content = `您收到${user_id}的交友邀請` //內文
+  const link = '/chatroom/openMemberPage/ID'+user_id //通知點下去要連到哪
+  const img = 'http://localhost:3002/public/images/event/002.jpg' //圖片網址
 
   db.queryAsync({
     sql: `SELECT * FROM friend_list WHERE (user_id=${user_id} OR user_id=${toID}) && (friend_id=${toID} OR friend_id=${user_id}) `,
     timeout: 40000, // 40s
   }).then(data => {
-    console.log(data[0])
-    console.log(!data[0])
     if (!data[0]) {
       db.queryAsync('INSERT INTO `friend_list` SET ? ', {
         user_id: user_id,
@@ -184,7 +183,23 @@ router.post('/friendList/:to_id', (req, res) => {
       }).then(result => {
         if (result.affectedRows === 1) {
           console.log('insert data success')
-          res.json("INSERT OK")
+         
+          //--------------給一般會員的通知----------------------------------------------
+          // query
+          var noticeSql =
+            'INSERT INTO `member_notice`(`member_id`,`send_id`, `content`, `link`, `img`) VALUES (?,?,?,?,?)'
+          db.query(
+            noticeSql,
+            [toID, user_id, content, link, img],
+            (error, results, fields) => {
+              if (!error) {
+                // dosomething
+                res.json({insert:"OK", success: true })
+              } else {
+                res.json({insert:"OK", success: false })
+              }
+            }
+          )
         }
       })
     } else if (data[0].status == 'review') {
@@ -195,7 +210,21 @@ router.post('/friendList/:to_id', (req, res) => {
       ).then(result => {
         if (result.changedRows >= 1) {
           console.log('UPDATE SUCCESS')
-          res.json("UPDATE OK")
+         
+          //DELETE notice
+          var delNotice =
+          `DELETE FROM member_notice WHERE (member_id=${toID} || send_id=${toID}) && (send_id=${user_id} || member_id=${user_id})`
+        db.query(
+          delNotice,
+          (error, results, fields) => {
+            if (!error) {
+              // dosomething
+              res.json({UPDATEDEL:"OK", success: true })
+            } else {
+              res.json({UPDATEDEL:"OK", success: false })
+            }
+          }
+        )
         }
       })
     } else if (data[0].status == 'delete') {
@@ -205,7 +234,23 @@ router.post('/friendList/:to_id', (req, res) => {
       ).then(result => {
         if (result.changedRows >= 1) {
           console.log('UPDATE SUCCESS')
-          res.json("UPDATE OK")
+         
+          //--------------給一般會員的通知----------------------------------------------
+          // query
+          var noticeSql =
+            'INSERT INTO `member_notice`(`member_id`,`send_id`, `content`, `link`, `img`) VALUES (?,?,?,?,?)'
+          db.query(
+            noticeSql,
+            [toID, user_id, content, link, img],
+            (error, results, fields) => {
+              if (!error) {
+                // dosomething
+                res.json({UPDATErev:"OK", success: true })
+              } else {
+                res.json({UPDATErev:"OK", success: false })
+              }
+            }
+          )
         }
       })
     }
