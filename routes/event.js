@@ -15,7 +15,7 @@ router.get('/', (req, res) => {
 
 //上傳揪團圖片
 router.post('/imgupload', upload.single('pt_img'),(req,res) =>{
-    console.log(req.file);
+    // console.log(req.file);
 
     let ext ='';
     let filename = req.file.filename;
@@ -109,7 +109,7 @@ router.post('/editpt', upload.single(),(req,res) =>{
 
 //取消揪團
 router.post('/cancelhost',function (req, res) {
-  console.log(req.body.pt_sid)
+  // console.log(req.body.pt_sid)
   let sql ='UPDATE `party_manage` SET `pt_state`= 0 WHERE `pt_sid` = (?)'
   db.query(sql, [ req.body.pt_sid], (error, results, fields) => {
   
@@ -154,6 +154,25 @@ router.post('/ptlist',upload.none(),function (req, res) {
 }
 )
 //讀取揪團頁面資料
+router.post('/ptinfopage',function (req, res) {  
+  
+  let ptsid=req.body.ptsid;
+  let sql = 'SELECT * FROM `party_manage` WHERE `pt_sid`=(?)';
+
+  db.query(sql, [ptsid], (error, results, fields) => {
+    results[0].pt_info = results[0].pt_info.replace(/\r\n/g,"<br />")
+    let pt_host = results[0].pt_host
+    // console.log(pt_host)
+    let membersql = 'SELECT `photo`, `name`, `nickname`,`member_id` FROM `member` WHERE `account` = (?)';
+      db.query(membersql,[pt_host],(error, results2, fields) =>{
+        results = Object.assign(results[0],results2[0])
+
+        res.json(results)
+      })
+  })
+});
+
+//讀取編輯揪團頁面資料
 router.post('/ptinfo',function (req, res) {  
   
   let ptsid=req.body.ptsid;
@@ -173,7 +192,7 @@ router.post('/ptinfo',function (req, res) {
 
 //報名者名單
 router.post('/ptapplyer',function (req, res) {  
-    console.log(req.body)
+    // console.log(req.body)
   let ptsid=req.body.ptsid;
   let sql = 'SELECT `party_apply`.* ,`member`.`photo`,`member`.`name`,`member`.`member_id` FROM `party_apply` LEFT JOIN `member` ON `party_apply`.`pt_applymember` = `member`.`account` WHERE `party_apply`.`pt_sid`= (?) AND `pt_applystatus` != "cancel"';
 
@@ -182,38 +201,76 @@ router.post('/ptapplyer',function (req, res) {
       })
   })
 
+  //審核報名者名單
+router.post('/commitptapplyer',function (req, res) {  
+  // console.log(req.body)
+let ptsid=req.body.ptsid;
+let sql = 'SELECT `party_apply`.* ,`member`.`photo`,`member`.`name`,`member`.`member_id` FROM `party_apply` LEFT JOIN `member` ON `party_apply`.`pt_applymember` = `member`.`account` WHERE `party_apply`.`pt_sid`= (?) AND `pt_applystatus` = "pending"';
+
+db.query(sql, [ptsid], (error, results, fields) => {
+      res.json(results)
+    })
+})
 
 //新增報名參團
 router.post('/apply',function (req, res) {
 
-
+  let hostid=req.body.hostid
   let ptsid=req.body.pt_sid
   let pthost=req.body.pt_host
   let ptapplymem=req.body.ptapplymem
   let applyresult = {success: false, errormsg:'',applyinfo:''}
-
+// console.log(hostid)
   let testsql = 'SELECT COUNT(1) FROM `party_apply` WHERE `pt_sid` = (?) AND `pt_applymember` = (?) AND `pt_applystatus` ="pending"'
-  db.query(testsql, [ptsid, ptapplymem], (error, results, fields) => {
+  //檢查報名自己的團
+  if(pthost == ptapplymem){
+    applyresult['errormsg'] = '無法報名自己的揪團喔'
 
-    if(results[0]['COUNT(1)'] == 0){
-      let sql ='INSERT INTO `party_apply`(`pt_sid`, `pt_host`, `pt_applymember`) VALUES (?,?,?)'
-          db.query(sql, [ptsid, pthost,ptapplymem], (error, results, fields) => {
-            applyresult['success'] = true
-            applyresult['applyinfo'] = results
-
-            return res.json(applyresult)
-        })
-    } else {
+    return res.json(applyresult)
+  }else{
+    //檢查重複報名
+    db.query(testsql, [ptsid, ptapplymem], (error, results, fields) => {
+    if(results[0]['COUNT(1)'] !== 0){
       applyresult['errormsg'] = '你已經報名這個揪團過摟'
 
       return res.json(applyresult)
+    } else {
+      //送出報名
+      let sql ='INSERT INTO `party_apply`(`pt_sid`, `pt_host`, `pt_applymember`) VALUES (?,?,?)'
+      db.query(sql, [ptsid, pthost,ptapplymem], (error, results, fields) => {
+        applyresult['success'] = true
+        applyresult['applyinfo'] = results
+
+        
+        //送通知
+        //--------------給一般會員的通知----------------------------------------------
+
+          const member_id = hostid; //收信人 會員 membet_id
+          const content = "你收到了一則開團申請，請記得前往審核"; //內文 
+          const link = "/member/userevent" //通知點下去要連到哪
+          const img = 'http://localhost:3002/public/images/event/002.jpg' //圖片網址
+
+          // query
+          var sql = "INSERT INTO `member_notice`(`member_id`, `content`, `link`, `img`) VALUES (?,?,?,?)"
+          db.query(sql, [member_id, content, link, img], (error, results, fields) => {
+              if (!error) {
+                  // dosomething
+                  return res.json(applyresult)
+              } else {
+                return res.json(applyresult)
+              }
+          });
+
+//---------------------------------------------------------------------------
+    })
     }
-})
+  })
+  }  
 })
 
 //取消報名揪團
 router.post('/cancelapply',function (req, res) {
-console.log(req.body.applysid)
+// console.log(req.body.applysid)
 let sql ='UPDATE `party_apply` SET `pt_applystatus` = "cancel" WHERE `party_apply`.`pt_applysid` = (?)'
 db.query(sql, [ req.body.applysid], (error, results, fields) => {
 
@@ -227,15 +284,37 @@ db.query(sql, [ req.body.applysid], (error, results, fields) => {
 
 //審核報名
 router.post('/commit',function (req, res) {
-  console.log(req.body)
+  // console.log(req.body)
+  let applyerid =req.body.applyerid
   let sql ='UPDATE `party_apply` SET `pt_applystatus`= (?) WHERE `pt_applysid` = (?)'
   db.query(sql, [ req.body.result,req.body.pt_applysid], (error, results, fields) => {
   
     if (!error) {
-      res.json({ success: true })
-      } else {
+          //--------------給一般會員的通知----------------------------------------------
+
+          const member_id = applyerid; //收信人 會員 membet_id
+          const content = "你的揪團申請已審核，請到我的揪團查看結果"; //內文 
+          const link = "/member/userevent" //通知點下去要連到哪
+          const img = 'http://localhost:3002/public/images/event/002.jpg' //圖片網址
+    
+          // query
+          var sql = "INSERT INTO `member_notice`(`member_id`, `content`, `link`, `img`) VALUES (?,?,?,?)"
+          db.query(sql, [member_id, content, link, img], (error, results, fields) => {
+              if (!error) {
+                  // dosomething
+                  res.json({ success: true })
+              } else {
+                res.json({ success: false })
+              }
+          });
+    
+    //---------------------------------------------------------------------------r
+      
+    
+    } else {
       res.json({ success: false })
       }
+
     })
   });
 
