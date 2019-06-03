@@ -69,8 +69,8 @@ router.put('/', function(req, res) {
 			}
 		});
 	} else {
-		let sql2 = 'SELECT * FROM `site_reservation` WHERE `user_id` = (?)';
-		db.query(sql2, [ req.session.userSid ], (error2, results2, fields2) => {
+		let sql2_cancel = 'UPDATE `site_reservation` SET `status` = (?) WHERE `site_reservation`.`sid` = (?)';
+		db.query(sql2_cancel, [ '9', req.body.sid ], (error2, results2, fields2) => {
 			console.log(results2);
 			if (results2[0] === undefined) {
 				res.json(data);
