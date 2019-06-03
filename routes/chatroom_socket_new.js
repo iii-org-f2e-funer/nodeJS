@@ -18,6 +18,10 @@ server.listen(8080, () => {
 io.on('connection', function(socket) {
   let id = socket.id
   console.log('socketID', id)
+  socket.on("confirm",obj=>{
+    console.log(obj)
+    io.emit("confirm",obj)
+  })
   socket.on('join', data => {
     console.log(data)
     socket.join(`${data}`)
@@ -202,14 +206,16 @@ router.post('/friendList/:to_id', (req, res) => {
           )
         }
       })
-    } else if (data[0].status == 'review') {
+    } else if (data[0].status == 'review' && req.body.action=="cancel") {
       //UPDATE
+      console.log("bodyaction",req.body.action)
       db.queryAsync(
-        `UPDATE friend_list SET  status = ? WHERE sid = ${data[0].sid}`,
-        ['delete']
+        `DELETE from friend_list  WHERE sid = ${data[0].sid}`,
+        
       ).then(result => {
-        if (result.changedRows >= 1) {
-          console.log('UPDATE SUCCESS')
+        console.log("changeRows",result.changedRows)
+        if (result.changedRows == 0) {
+          console.log('DELETE SUCCESS')
          
           //DELETE notice
           var delNotice =
@@ -251,6 +257,16 @@ router.post('/friendList/:to_id', (req, res) => {
               }
             }
           )
+        }
+      })
+    }else if(data[0].status=="review" && req.body.action=="confirm"){
+      db.queryAsync(
+        `UPDATE friend_list SET  status = ? WHERE sid = ${data[0].sid}`,
+        ['approve']
+      ).then(result => {
+        if (result.changedRows >= 1) {
+          console.log('UPDATE SUCCESS')
+          res.json({UPDATEapprove:"OK" })
         }
       })
     }
