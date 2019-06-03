@@ -19,7 +19,7 @@ router.post('/imgupload', upload.single('pt_img'),(req,res) =>{
 
     let ext ='';
     let filename = req.file.filename;
-    let path = '//localhost:3002/images/event/'
+    let path = './public/images/event'
 
     if(req.file && req.file.originalname){
       switch(req.file.mimetype){
@@ -127,8 +127,29 @@ router.post('/ptlist',upload.none(),function (req, res) {
   let offset = req.body.offset ? parseInt(req.body.offset, 10) : 0;
   let nextOffset = offset + PER_PAGE;
   let previousOffset = offset - PER_PAGE < 1 ? 0 : offset - PER_PAGE;
+ 
+  var str = ''
+    if (req.body.searchterm !== "" && req.body.searchterm!== undefined ){
+      str += " AND `pt_host` LIKE '%"+ req.body.searchterm +"%' OR `pt_add` LIKE '%"+ req.body.searchterm +"%' OR `pt_title` LIKE '%"+ req.body.searchterm +"%'"
+    }
+    if (req.body.searchcity !== "" && req.body.searchcity!== undefined ){
+      str += " AND `party_manage`.`pt_city` = '" + req.body.searchcity + "'"
+    }
+    if (req.body.searchdist !== "" && req.body.searchdist!== undefined){
+      str += " AND `party_manage`.`pt_dist` = '" + req.body.searchdist + "'"
+    }
+    if (req.body.searchstarttime !== "" && req.body.searchstarttime!== undefined){
+      str += " AND `party_manage`.`pt_time` >= '" + req.body.searchstarttime + "'"
+    }
+    if (req.body.searchendtime !== "" && req.body.searchendtime!== undefined){
+      str += " AND `party_manage`.`pt_time` <= '" + req.body.searchendtime + "'"
+    }
+    if (req.body.searchlevel !== "" && req.body.searchlevel!== undefined){
+      str += " AND `party_manage`.`pt_level` = '" + req.body.searchlevel + "'"
+    }
 
-  let sql = 'SELECT `party_manage`.*,`member`.`photo`,`member`.`member_id` FROM `party_manage` LEFT JOIN `member` ON `party_manage`.`pt_host` = `member`.`account` WHERE `party_manage`.`pt_state` = 1 ORDER BY `pt_sid` desc'
+    // console.log(str)
+  let sql = 'SELECT `party_manage`.*,`member`.`photo`,`member`.`member_id` FROM `party_manage` LEFT JOIN `member` ON `party_manage`.`pt_host` = `member`.`account` WHERE `party_manage`.`pt_state` = 1' + str + ' ORDER BY `pt_sid` desc'
   db.query(sql, (error, results, fields) => {
     let items = results;    
     

@@ -51,7 +51,8 @@ router.get('/homeInstagram', (req, res) => {
             for (let i = 0; i < data.length; i++) {
                 (data[i].member_id[0] === 'f') ? data[i].isFirm = true : data[i].isFirm = false;
                 // 轉換分行
-                data[i].content = data[i].content.replace(/\s/g,"<br />")
+                console.log(data[i].content)
+                data[i].content = data[i].content.replace(/\n/g,"<br />")
                 // 轉換時間
                 data[i].post_time = moment(data[i].post_time).format("M月D日 ahh:mm")
                 data[i].post_time = data[i].post_time.replace(/ am/, " 上午")

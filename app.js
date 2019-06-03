@@ -14,7 +14,7 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-var whitelist = [ 'http://localhost:3000', undefined, 'http://localhost:3002' ];
+var whitelist = [ 'http://localhost:3000', undefined, 'http://localhost:3002','http://happy6.s3-website-ap-northeast-1.amazonaws.com'];
 var corsOptions = {
 	credentials: true,
 	origin: function(origin, callback) {

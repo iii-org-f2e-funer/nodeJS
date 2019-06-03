@@ -59,7 +59,7 @@ bluebird.promisifyAll(db)
 router.get('/message/:user_id', (req, res) => {
   console.log('req id:', req.params.user_id)
   db.queryAsync({
-    sql: `SELECT h.*,x.name x_fromname,y.name y_toname FROM (SELECT * FROM chat_header WHERE from_id=${
+    sql: `SELECT h.*,x.name x_fromname,y.name y_toname, x.photo photoFROM_URL, y.photo photoTO_URL FROM (SELECT * FROM chat_header WHERE from_id=${
       req.params.user_id
     } OR to_id=${
       req.params.user_id
@@ -89,7 +89,7 @@ router.get('/openMemberPage/:to_id', (req, res) => {
   console.log('req id:', req.params.to_id)
   var OMPdata = []
   db.queryAsync({
-    sql: `SELECT m.nickname nickname, m.birthday birthday, m.gender gender, m.city location, m.intro about FROM (SELECT * FROM member WHERE member_id=${
+    sql: `SELECT m.nickname nickname, m.birthday birthday, m.gender gender, m.city location, m.intro about, m.photo photoURL FROM (SELECT * FROM member WHERE member_id=${
       req.params.to_id
     }) as m `,
     timeout: 40000, // 40s
@@ -115,7 +115,7 @@ router.get('/message/:user_id/:to_id', (req, res) => {
   console.log('req id:', req.params.user_id)
   console.log('to id:', req.params.to_id)
   db.queryAsync({
-    sql: `SELECT h.id h_id,h.create_time h_stime, m.id m_id, m.content m_cont, m.sender_id m_sender_id,m.receiver_id m_receiver_id, m.time m_time, x.name x_name  FROM(SELECT * FROM chat_header WHERE from_id=${
+    sql: `SELECT h.id h_id,h.create_time h_stime, m.id m_id, m.content m_cont, m.sender_id m_sender_id,m.receiver_id m_receiver_id, m.time m_time, x.name x_name, x.photo photoFROM_URL FROM(SELECT * FROM chat_header WHERE from_id=${
       req.params.user_id
     } OR to_id=${
       req.params.user_id
@@ -145,7 +145,7 @@ router.get('/friendList/:user_id', (req, res) => {
   let reqID = req.params.user_id
   console.log('req id:', reqID)
   db.queryAsync({
-    sql: `SELECT f.*, x.name user_name,y.name friend_name FROM(SELECT * FROM friend_list where user_id=${reqID} OR friend_id=${reqID}) as f JOIN member x ON(f.user_id=x.member_id) JOIN member y ON (f.friend_id=y.member_id) `,
+    sql: `SELECT f.*, x.name user_name,y.name friend_name, x.photo photoFROM_URL, y.photo photoTO_URL FROM(SELECT * FROM friend_list where user_id=${reqID} OR friend_id=${reqID}) as f JOIN member x ON(f.user_id=x.member_id) JOIN member y ON (f.friend_id=y.member_id) `,
     timeout: 40000, // 40s
   }).then(data => {
     let friendData = []

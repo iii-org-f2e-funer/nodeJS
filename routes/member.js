@@ -77,6 +77,7 @@ router.post('/userRegister', function (req, res) {
       })
       return
     } else {
+      console.log(error)
       data.message = '註冊失敗'
       res.json({ data })
     }

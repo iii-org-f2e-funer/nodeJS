@@ -6,7 +6,7 @@ const db = require('../utility/db.js')
 // 上傳檔案設定
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './public/images')
+        cb(null, './public/images/instagram')
     },
     filename: function (req, file, cb) {
         //   cb(null, file.fieldname + '-' + Date.now())
