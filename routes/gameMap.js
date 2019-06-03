@@ -201,6 +201,45 @@ router.get('/All/:query?', (req, res) => {
 		}
 	});
 });
+
+router.get('/nearby/:query?', (req, res) => {
+	let isOk = false;
+	let query = req.params.query || '';
+	// let query = '桌遊';
+	let sql = 'select * from `site_manage` where `store` like  "%' + query + '%"';
+	console.log(sql);
+	// let sql = 'SELECT * FROM `site_manage`  WHERE `store` LIKE %' + query + '%';
+	db.query(sql, (error, results, fields) => {
+		if (results.length === 0) {
+			res.json([ 'nodata' ]);
+		} else {
+			let newArray = [];
+
+			for (let index in results) {
+				let img_sid = results[index]['sid'];
+				let img_sql =
+					'SELECT site_manage.* , site_image.* FROM `site_manage` LEFT JOIN `site_image` ON site_manage.sid= site_image.site_id where `site_id`=(?)';
+				db.query(img_sql, img_sid, (error2, results2, fields2) => {
+					let imgArray = [];
+					if (results2) {
+						for (let index in results2) {
+							imgArray.push(results2[index]['image_path']);
+						}
+					}
+					results[index]['imageArray'] = imgArray;
+					newArray.push(results[index]);
+
+					if (newArray.length === results.length) {
+						// console.log(newArray);
+
+						res.json(newArray);
+					}
+				});
+			}
+		}
+	});
+});
+
 router.get('/test', (req, res) => {
 	// console.log(req.session);
 	res.json({ success: true });
