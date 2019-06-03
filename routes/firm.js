@@ -152,9 +152,9 @@ router.post('/firmRegister', function(req, res) {
         }
         transporter.sendMail(options, function(error, info) {
           if (error) {
-            console.log('EEEEEEEEEEEE', error)
+            // console.log('EEEEEEEEEEEE', error)
           } else {
-            console.log('訊息發送: ' + info.response)
+            // console.log('訊息發送: ' + info.response)
           }
         })
         res.json({ data })
@@ -168,7 +168,7 @@ router.post('/firmRegister', function(req, res) {
 })
 //checkCode
 router.post('/checkCode', function(req, res) {
-  console.log('req.body.code:', req.body.code)
+  // console.log('req.body.code:', req.body.code)
   const data = { success: false, message: '' }
   let sql = 'SELECT * FROM `firm_manage` WHERE `code` = (?)'
   db.query(sql, [req.body.code], (error, results, fields) => {
@@ -178,7 +178,7 @@ router.post('/checkCode', function(req, res) {
       res.json(data)
       return
     } else {
-      console.log('results[0].sid:', results[0].sid)
+      // console.log('results[0].sid:', results[0].sid)
       let sql2 = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
       db.query(
         sql2,
@@ -435,7 +435,7 @@ router.post('/insertAccount', upload.array('files'), function(req, res) {
     .get(url)
     .then(res => {
       address = res.data.results[0].geometry.location
-      console.log(address)
+      // console.log(address)
     })
     .then(() => {
       let sql =
