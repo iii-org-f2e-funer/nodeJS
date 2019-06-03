@@ -68,7 +68,7 @@ router.post('/product_order', function(req, res) {
         data.body = req.body
         // res.json(data)
         const member_id = req.body.login_user_sid //收信人 會員 membet_id
-        const content = '您以成功購買一件商品,可至訂單管理頁面查看訂單資訊' //內文
+        const content = '您成功購買一件商品,可至訂單管理頁面查看訂單資訊' //內文
         const link = '/member/UserShopping' //通知點下去要連到哪
         const img = '' //圖片網址
         // query
