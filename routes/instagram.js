@@ -266,6 +266,8 @@ router.get('/allData', (req, res) => {
             });
 
 
+        } else {
+            console.log(error)
         }
     });
 
