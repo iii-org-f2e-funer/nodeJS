@@ -19,7 +19,7 @@ router.post('/imgupload', upload.single('pt_img'),(req,res) =>{
 
     let ext ='';
     let filename = req.file.filename;
-    let path = '//localhost:3002/images/event/'
+    let path = './public/images/event'
 
     if(req.file && req.file.originalname){
       switch(req.file.mimetype){
