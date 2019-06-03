@@ -144,9 +144,9 @@ router.post('/firmRegister', function(req, res) {
           //主旨
           subject: '歡迎使用funner',
           html:
-            '<h2 style="font-weight: 400">您好</h2><h2 style="font-weight: 400">感謝您在FUNer上註冊帳號，請點擊連結啟用帳號，謝謝</h2 style="font-weight: 400"><a href="http://localhost:3000/checkCode?code=' +
+            '<h2 style="font-weight: 400">您好</h2><h2 style="font-weight: 400">感謝您在FUNer上註冊帳號，請點擊連結啟用帳號，謝謝</h2 style="font-weight: 400"><a href="http://happy6.s3-website-ap-northeast-1.amazonaws.com/checkCode?code=' +
             code +
-            '">http://localhost:3000/checkCode?code=' +
+            '">http://happy6.s3-website-ap-northeast-1.amazonaws.com/checkCode?code=' +
             code +
             '<a/><h2 style="font-weight: 400">此郵件為FUNer平台所發送，若您未在FUNer註冊帳號，請忽略此郵件</h2><h2 style="font-weight: 400">FUNer團隊 敬上</h2>',
         }
