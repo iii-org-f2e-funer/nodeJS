@@ -95,7 +95,7 @@ router.post('/newComment', (req, res) => {
 
 // 新增留言的留言
 router.post('/newSubComment', (req, res) => {
-    console.log(req.body)
+    // console.log(req.body)
     // { commentID: 9, userID: 1, content: 'test' }
 
     // query

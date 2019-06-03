@@ -32,7 +32,7 @@ router.get("/message/user_id1",(req,res)=>{
       timeout: 40000, // 40s
       //values: ['David']
     }).then(data=> {
-      console.log(data);
+      // console.log(data);
       res.json(data);
       // error will be an Error if one occurred during the query
       // results will contain the results of the query

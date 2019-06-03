@@ -59,10 +59,10 @@ const upload = multer({ storage: storage })
 //註冊
 router.post('/userRegister', function (req, res) {
   const data = { success: false, message: '' }
-  let sql = "INSERT INTO `member`(`account`, `password`, `email`, `name`, `nickname`, `gender`, `birthday`, `mobile`, `intro`, `city`, `site`, `street`, `account_status`, `photo`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+  let sql = "INSERT INTO `member`(`account`, `password`, `email`, `name`, `nickname`, `gender`, `mobile`, `intro`, `city`, `site`, `street`, `account_status`, `photo`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
 
   // 預設 nickname = name
-  db.query(sql, [req.body.account, req.body.password, req.body.email, req.body.name, req.body.name, "", "", "", "", "", "", "", 0, ""], (error, results, fields) => {
+  db.query(sql, [req.body.account, req.body.password, req.body.email, req.body.name, req.body.name, "", "", "", "", "", "", 0, ""], (error, results, fields) => {
     if (error) throw error
     console.log(error)
     // console.log(results)
