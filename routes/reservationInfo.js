@@ -12,7 +12,7 @@ router.get('/', function(req, res) {
 	console.log(req.session);
 	const data = { success: false, isFirm: req.session.isFirm };
 	if (req.session.isFirm) {
-		let sql1 = 'SELECT *  FROM `site_reservation` WHERE `site_id` = (?)';
+		let sql1 = 'SELECT *  FROM `site_reservation` WHERE `site_id` = (?) ORDER BY `sid` DESC';
 		db.query(sql1, [ req.session.userSid ], (error1, results1, fields1) => {
 			console.log(results1);
 			if (results1[0] === undefined) {
@@ -28,7 +28,7 @@ router.get('/', function(req, res) {
 			}
 		});
 	} else {
-		let sql2 = 'SELECT * FROM `site_reservation` WHERE `user_id` = (?)';
+		let sql2 = 'SELECT * FROM `site_reservation` WHERE `user_id` = (?) ORDER BY `sid` DESC';
 		db.query(sql2, [ req.session.userSid ], (error2, results2, fields2) => {
 			console.log(results2);
 			if (results2[0] === undefined) {
