@@ -242,7 +242,7 @@ router.post('/apply',function (req, res) {
   let ptapplymem=req.body.ptapplymem
   let applyresult = {success: false, errormsg:'',applyinfo:''}
 // console.log(hostid)
-  let testsql = 'SELECT COUNT(1) FROM `party_apply` WHERE `pt_sid` = (?) AND `pt_applymember` = (?) AND `pt_applystatus` ="pending"'
+  let testsql = 'SELECT COUNT(1) FROM `party_apply` WHERE `pt_sid` = (?) AND `pt_applymember` = (?) AND `pt_applystatus` !="cancel"'
   //檢查報名自己的團
   if(pthost == ptapplymem){
     applyresult['errormsg'] = '無法報名自己的揪團喔'
