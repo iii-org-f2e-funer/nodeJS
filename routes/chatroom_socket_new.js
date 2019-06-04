@@ -296,13 +296,13 @@ router.post('/friendList/:to_id', (req, res) => {
 //check if chat_header is null
 router.post('/chat_headerInsert/:user_id/:to_id', (req, res) => {
   let bodyData = req.body
-  db.queryAsync(
-    `SELECT count(*) headerCount FROM chat_header WHERE ((from_id=${
-      req.params.user_id
-    } || from_id=${req.params.to_id}) && (to_id=${req.params.to_id} || to_id=${
-      req.params.user_id
-    }))`
-  ).then(count => {
+  // db.queryAsync(
+  //   `SELECT count(*) headerCount FROM chat_header WHERE ((from_id=${
+  //     req.params.user_id
+  //   } || from_id=${req.params.to_id}) && (to_id=${req.params.to_id} || to_id=${
+  //     req.params.user_id
+  //   }))`
+  // ).then(count => {
     // if (count[0].headerCount == false) {
       db.queryAsync('INSERT INTO `chat_header` SET ? ', {
         from_id: bodyData.applicant,
@@ -315,7 +315,7 @@ router.post('/chat_headerInsert/:user_id/:to_id', (req, res) => {
         res.json('addchatHeaderOK')
       })
     // }
-  })
+  // })
 })
 
 //post message
