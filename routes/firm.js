@@ -44,8 +44,8 @@ router.get('/userInfo', function (req, res) {
         data.success = true
         data.body = results2[0]
         // date轉換
-        if (data.body.birthday === "0000-00-00"){
-          data.body.birthday = ""
+        if (data.body.birthday === '0000-00-00') {
+          data.body.birthday = ''
         } else {
           data.body.birthday = moment(data.body.birthday).format('YYYY-MM-DD')
         }
@@ -110,7 +110,7 @@ router.post('/firmRegister', function (req, res) {
       req.body.account,
       req.body.password,
       req.body.email,
-      req.body.uniform,
+      req.body.unicode,
       registerTime,
       code,
       false,
@@ -144,17 +144,17 @@ router.post('/firmRegister', function (req, res) {
           //主旨
           subject: '歡迎使用funner',
           html:
-            '<h2 style="font-weight: 400">您好</h2><h2 style="font-weight: 400">感謝您在FUNer上註冊帳號，請點擊連結啟用帳號，謝謝</h2 style="font-weight: 400"><a href="http://localhost:3000/checkCode?code=' +
+            '<h2 style="font-weight: 400">您好</h2><h2 style="font-weight: 400">感謝您在FUNer上註冊帳號，請點擊連結啟用帳號，謝謝</h2 style="font-weight: 400"><a href="http://happy6.s3-website-ap-northeast-1.amazonaws.com/checkCode?code=' +
             code +
-            '">http://localhost:3000/checkCode?code=' +
+            '">http://happy6.s3-website-ap-northeast-1.amazonaws.com/checkCode?code=' +
             code +
             '<a/><h2 style="font-weight: 400">此郵件為FUNer平台所發送，若您未在FUNer註冊帳號，請忽略此郵件</h2><h2 style="font-weight: 400">FUNer團隊 敬上</h2>',
         }
         transporter.sendMail(options, function (error, info) {
           if (error) {
-            console.log('EEEEEEEEEEEE', error)
+            // console.log('EEEEEEEEEEEE', error)
           } else {
-            console.log('訊息發送: ' + info.response)
+            // console.log('訊息發送: ' + info.response)
           }
         })
         res.json({ data })
@@ -168,7 +168,7 @@ router.post('/firmRegister', function (req, res) {
 })
 //checkCode
 router.post('/checkCode', function (req, res) {
-  console.log('req.body.code:', req.body.code)
+  // console.log('req.body.code:', req.body.code)
   const data = { success: false, message: '' }
   let sql = 'SELECT * FROM `firm_manage` WHERE `code` = (?)'
   db.query(sql, [req.body.code], (error, results, fields) => {
@@ -178,7 +178,7 @@ router.post('/checkCode', function (req, res) {
       res.json(data)
       return
     } else {
-      console.log('results[0].sid:', results[0].sid)
+      // console.log('results[0].sid:', results[0].sid)
       let sql2 = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
       db.query(
         sql2,
@@ -207,35 +207,67 @@ router.post('/checkCode', function (req, res) {
 // login code info
 router.post('/codeInfo', upload.array('files'), function (req, res) {
   const data = { success: false, message: '' }
-  let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
-  db.query(
-    sql,
-    [
-      {
-        firmname: req.body.firmname,
-        phone: req.body.phone,
-        city: req.body.city,
-        dist: req.body.dist,
-        address: req.body.address,
-        contacter: req.body.contacter,
-        my_file: req.files[0].filename,
-      },
-      req.body.sid,
-    ],
-    (error, results, fields) => {
-      if (error) throw error
-      if (results.affectedRows === 1) {
-        data.success = true
-        data.message = '基本資料完成'
-        res.json(data)
-        return
-      } else {
-        data.message = '基本資料新增失敗'
-        res.json(data)
-        return
+  if (!req.files.length) {
+    let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
+    db.query(
+      sql,
+      [
+        {
+          firmname: req.body.firmname,
+          phone: req.body.phone,
+          city: req.body.city,
+          dist: req.body.dist,
+          address: req.body.address,
+          contacter: req.body.contacter,
+          my_file: req.files[0].filename,
+        },
+        req.body.sid,
+      ],
+      (error, results, fields) => {
+        if (error) throw error
+        if (results.affectedRows === 1) {
+          data.success = true
+          data.message = '基本資料完成'
+          res.json(data)
+          return
+        } else {
+          data.message = '基本資料新增失敗'
+          res.json(data)
+          return
+        }
       }
-    }
-  )
+    )
+  } else {
+    let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
+    db.query(
+      sql,
+      [
+        {
+          firmname: req.body.firmname,
+          phone: req.body.phone,
+          city: req.body.city,
+          dist: req.body.dist,
+          address: req.body.address,
+          contacter: req.body.contacter,
+        },
+        req.body.sid,
+      ],
+      (error, results, fields) => {
+        if (error) throw error
+        if (results.affectedRows === 1) {
+          data.success = true
+          data.message = '基本資料完成'
+          res.json(data)
+          return
+        } else {
+          data.message = '基本資料新增失敗'
+          res.json(data)
+          return
+        }
+      }
+    )
+  }
+
 })
 
 // register check
@@ -335,41 +367,34 @@ router.post('/firmEdit', function (req, res) {
 router.post('/passwordEdit', function (req, res) {
   const data = { success: false, message: '' }
   let sql = 'SELECT * FROM `firm_manage` WHERE `sid` = (?)'
-  db.query(
-    sql,
-    [
-      req.body.sid,
-    ],
-    (error, results, fields) => {
-      if (error) throw error
-      if (results[0].password === req.body.ori_password) {
-        let sql2 = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
-        db.query(
-          sql2,
-          [
-            {
-              password: req.body.password,
-            },
-            req.body.sid,
-          ],
-          (error2, results2, fields2) => {
-            if (error2) throw error2
-            if (results2.affectedRows === 1) {
-              data.message = '密碼修改成功'
-            } else {
-              data.message = '密碼修改失敗'
-            }
+  db.query(sql, [req.body.sid], (error, results, fields) => {
+    if (error) throw error
+    if (results[0].password === req.body.ori_password) {
+      let sql2 = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
+      db.query(
+        sql2,
+        [
+          {
+            password: req.body.password,
+          },
+          req.body.sid,
+        ],
+        (error2, results2, fields2) => {
+          if (error2) throw error2
+          if (results2.affectedRows === 1) {
+            data.message = '密碼修改成功'
+          } else {
+            data.message = '密碼修改失敗'
           }
-        )
-        data.success = true
-        res.json(data)
-      } else {
-        data.message = '原密碼不符'
-        res.json(data)
-      }
+        }
+      )
+      data.success = true
+      res.json(data)
+    } else {
+      data.message = '原密碼不符'
+      res.json(data)
     }
-  )
-
+  })
 })
 
 //場地資料設定
@@ -442,7 +467,7 @@ router.post('/insertAccount', upload.array('files'), function (req, res) {
     .get(url)
     .then(res => {
       address = res.data.results[0].geometry.location
-      console.log(address)
+      // console.log(address)
     })
     .then(() => {
       let sql =

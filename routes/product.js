@@ -9,7 +9,31 @@ router.get('/game_type', (req, res) => {
     res.json(results)
   })
 })
-
+//product_del
+router.post('/product_del', function(req, res) {
+  console.log(req.body.sid)
+  const data = { success: false, message: '' }
+  let sql = 'DELETE FROM `product_manage` WHERE `sid` = (?)'
+  db.query(sql, [req.body.sid], (error, results, fields) => {
+    if (error) throw error
+    if (results[0] === undefined) {
+      data.message = '沒有此資料'
+      res.json(data)
+    } else {
+      data.success = true
+      data.message = '已刪除'
+      res.json(data)
+    }
+  })
+})
+//product_manage
+router.get('/product_manage', (req, res) => {
+  console.log(req.session.userSid)
+  let sql = 'SELECT * FROM `product_manage` WHERE `seller_sid` = (?)'
+  db.query(sql, [req.session.userSid], (error, results, fields) => {
+    res.json(results)
+  })
+})
 //product-all
 router.get('/productlist', (req, res) => {
   let sql = 'SELECT * FROM `product_manage`ORDER BY sid desc'

@@ -6,7 +6,7 @@ const db = require('../utility/db.js')
 // 上傳檔案設定
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './public/images')
+        cb(null, './public/images/instagram')
     },
     filename: function (req, file, cb) {
         //   cb(null, file.fieldname + '-' + Date.now())
@@ -95,7 +95,7 @@ router.post('/newComment', (req, res) => {
 
 // 新增留言的留言
 router.post('/newSubComment', (req, res) => {
-    console.log(req.body)
+    // console.log(req.body)
     // { commentID: 9, userID: 1, content: 'test' }
 
     // query
@@ -266,6 +266,8 @@ router.get('/allData', (req, res) => {
             });
 
 
+        } else {
+            console.log(error)
         }
     });
 
