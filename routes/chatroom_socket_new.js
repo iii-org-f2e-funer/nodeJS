@@ -303,8 +303,8 @@ db.queryAsync(`SELECT count(*) headerCount FROM chat_header WHERE ((from_id=${re
       subject: null,
       time: bodyData.time,
       create_time: bodyData.create_time,
-      m_sec: bodyData.m_sec,
-    }).then(res=>{console.log("addheader")})
+    }).then(res=>{console.log("addheader")
+  res.json("addchatHeaderOK")})
   }
 })
 })
