@@ -192,7 +192,7 @@ router.post('/friendList/:to_id', (req, res) => {
 
   db.queryAsync(`SELECT nickname FROM member WHERE member_id=${user_id}`).then(
     data => {
-      var content = `您收到${data}的交友邀請`
+      var content = `您收到${data.nickname}的交友邀請`
       db.queryAsync({
         sql: `SELECT * FROM friend_list WHERE (user_id=${user_id} OR user_id=${toID}) && (friend_id=${toID} OR friend_id=${user_id}) `,
         timeout: 40000, // 40s
