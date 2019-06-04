@@ -249,15 +249,15 @@ router.get('/test', (req, res) => {
 router.post('/reservation', (req, res) => {
 	// console.log(req.session);
 	console.log(req.body.date);
-	sqlDate = `${moment(req.body.date).format('YYYY-MM-DD HH:mm:ss')}+`;
-
+	let sqlDate = `${moment(req.body.date).format('YYYY-MM-DD HH:mm:ss')}`;
+	console.log(sqlDate);
 	let initData = [
 		req.body.userId,
 		req.body.firm_id,
 		req.body.phone,
 		req.body.name,
 		req.body.people,
-		req.body.date,
+		sqlDate,
 		req.body.store,
 		'NoRemark'
 	];
