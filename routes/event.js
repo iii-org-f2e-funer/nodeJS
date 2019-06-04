@@ -215,7 +215,7 @@ router.post('/ptinfo',function (req, res) {
 router.post('/ptapplyer',function (req, res) {  
     // console.log(req.body)
   let ptsid=req.body.ptsid;
-  let sql = 'SELECT `party_apply`.* ,`member`.`photo`,`member`.`name`,`member`.`member_id` FROM `party_apply` LEFT JOIN `member` ON `party_apply`.`pt_applymember` = `member`.`account` WHERE `party_apply`.`pt_sid`= (?) AND `pt_applystatus` != "cancel"';
+  let sql = 'SELECT `party_apply`.* ,`member`.`photo`,`member`.`name`,`member`.`nickname`,`member`.`member_id` FROM `party_apply` LEFT JOIN `member` ON `party_apply`.`pt_applymember` = `member`.`account` WHERE `party_apply`.`pt_sid`= (?) AND `pt_applystatus` != "cancel"';
 
   db.query(sql, [ptsid], (error, results, fields) => {
         res.json(results)
