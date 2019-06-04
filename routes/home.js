@@ -54,7 +54,7 @@ router.get('/homeInstagram', (req, res) => {
                 // console.log(data[i].content)
                 data[i].content = data[i].content.replace(/\n/g,"<br />")
                 // 轉換時間
-                data[i].post_time = moment(data[i].post_time).format("M月D日 ahh:mm")
+                data[i].post_time = moment(data[i].post_time).utcOffset(8).format("M月D日 ahh:mm")
                 data[i].post_time = data[i].post_time.replace(/ am/, " 上午")
                 data[i].post_time = data[i].post_time.replace(/ pm/, " 下午")
             }
