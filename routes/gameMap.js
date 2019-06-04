@@ -8,14 +8,16 @@ const session = require('express-session');
 const app = express();
 const router = express.Router();
 
+const moment = require('moment');
+
 const db = require('../utility/db.js');
 const cityCodeToString = require('./gameMapSql.js');
 
 function awsSNS(sendMessage, sendPhoneNum) {
 	let sendMsg = require('aws-sns-sms');
 	let awsConfig = {
-		accessKeyId: 'AKIAXGD4INLYUEW3LX3X',
-		secretAccessKey: 'Zzki34nDf2uGyhlhYaoYFmavPOE0GUI6jD/3EKIK',
+		accessKeyId: 'YOUR-AWS-KEY',
+		secretAccessKey: 'YOUR-AWS-KEY',
 		region: 'ap-northeast-1'
 	};
 
@@ -247,13 +249,15 @@ router.get('/test', (req, res) => {
 router.post('/reservation', (req, res) => {
 	// console.log(req.session);
 	console.log(req.body.date);
+	let sqlDate = `${moment(req.body.date).format('YYYY-MM-DD HH:mm:ss')}`;
+	console.log(sqlDate);
 	let initData = [
 		req.body.userId,
 		req.body.firm_id,
 		req.body.phone,
 		req.body.name,
 		req.body.people,
-		req.body.date,
+		sqlDate,
 		req.body.store,
 		'NoRemark'
 	];
@@ -265,27 +269,44 @@ router.post('/reservation', (req, res) => {
 	let query = db.query(sql, initData, (error, results, fields) => {
 		if (error) throw error;
 		if (results.affectedRows === 1) {
-			// console.log(req.body);
-			date = new Date(req.body.date);
-			year = date.getFullYear();
-			month = date.getMonth() + 1;
-			dt = date.getDate();
+			const firm_id = req.body.firm_id; //收信人 會員 membet_id
+			const content = '已收到您的場地預約訂單!!'; //內文
+			const link = '/firm/site_order'; //通知點下去要連到哪
+			const img = ''; //圖片網址
 
-			if (dt < 10) {
-				dt = '0' + dt;
-			}
-			if (month < 10) {
-				month = '0' + month;
-			}
-			let SMS_Msg = `FUNer場地預約訂單已送出!!//場地:${req.body.store}//人數:${req.body.people}//預約時間:${year}-${month}-${dt}`;
-			let SMS_PhoneNum = req.body.phone.replace(/\d{2}/, '+8869');
-			// let status = awsSNS(SMS_Msg, SMS_PhoneNum);
-			console.log(SMS_Msg);
-			console.log(SMS_PhoneNum);
-			// if (status) {
-			if (1) {
-				res.send('ok');
-			}
+			// query
+			var sql2 = 'INSERT INTO `firm_notice`(`firm_id`, `content`, `link`, `img`) VALUES (?,?,?,?)';
+			db.query(sql2, [ firm_id, content, link, img ], (error, results, fields) => {
+				if (!error) {
+					// dosomething
+
+					// console.log(req.body);
+					date = new Date(req.body.date);
+					year = date.getFullYear();
+					month = date.getMonth() + 1;
+					dt = date.getDate();
+
+					if (dt < 10) {
+						dt = '0' + dt;
+					}
+					if (month < 10) {
+						month = '0' + month;
+					}
+					let SMS_Msg = `FUNer已收到您的場地預約訂單!!//場地:${req.body.store}//人數:${req.body
+						.people}//預約時間:${year}-${month}-${dt}`;
+					let SMS_PhoneNum = req.body.phone.replace(/\d{2}/, '+8869');
+					let status = awsSNS(SMS_Msg, SMS_PhoneNum);
+					console.log(SMS_Msg);
+					console.log(SMS_PhoneNum);
+					if (status) {
+						// if (1) {
+						res.send('ok');
+						// res.json({ success: true });
+					}
+				} else {
+					res.json({ success: false });
+				}
+			});
 		} else {
 		}
 	});

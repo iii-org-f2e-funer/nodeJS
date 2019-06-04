@@ -80,7 +80,7 @@ router.post('/product_order', function(req, res) {
       req.body.order_email,
       req.body.order_phone,
       req.body.paid,
-      new Date(),
+      new Date(new Date().setUTCHours(11)),
       req.body.choose_order,
       req.body.seller,
     ],

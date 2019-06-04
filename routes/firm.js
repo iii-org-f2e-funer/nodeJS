@@ -207,35 +207,67 @@ router.post('/checkCode', function(req, res) {
 // login code info
 router.post('/codeInfo', upload.array('files'), function(req, res) {
   const data = { success: false, message: '' }
-  let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
-  db.query(
-    sql,
-    [
-      {
-        firmname: req.body.firmname,
-        phone: req.body.phone,
-        city: req.body.city,
-        dist: req.body.dist,
-        address: req.body.address,
-        contacter: req.body.contacter,
-        my_file: req.files[0].filename,
-      },
-      req.body.sid,
-    ],
-    (error, results, fields) => {
-      if (error) throw error
-      if (results.affectedRows === 1) {
-        data.success = true
-        data.message = '基本資料完成'
-        res.json(data)
-        return
-      } else {
-        data.message = '基本資料新增失敗'
-        res.json(data)
-        return
+  if (req.files[0] !== undefined) {
+    let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
+    db.query(
+      sql,
+      [
+        {
+          firmname: req.body.firmname,
+          phone: req.body.phone,
+          city: req.body.city,
+          dist: req.body.dist,
+          address: req.body.address,
+          contacter: req.body.contacter,
+          my_file: req.files[0].filename,
+        },
+        req.body.sid,
+      ],
+      (error, results, fields) => {
+        if (error) throw error
+        if (results.affectedRows === 1) {
+          data.success = true
+          data.message = '基本資料完成'
+          res.json(data)
+          return
+        } else {
+          data.message = '基本資料新增失敗'
+          res.json(data)
+          return
+        }
       }
-    }
-  )
+    )
+  } else {
+    let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
+    db.query(
+      sql,
+      [
+        {
+          firmname: req.body.firmname,
+          phone: req.body.phone,
+          city: req.body.city,
+          dist: req.body.dist,
+          address: req.body.address,
+          contacter: req.body.contacter,
+          my_file: '',
+        },
+        req.body.sid,
+      ],
+      (error, results, fields) => {
+        if (error) throw error
+        if (results.affectedRows === 1) {
+          data.success = true
+          data.message = '基本資料完成'
+          res.json(data)
+          return
+        } else {
+          data.message = '基本資料新增失敗'
+          res.json(data)
+          return
+        }
+      }
+    )
+  }
 })
 
 // register check
@@ -373,7 +405,6 @@ router.get('/firmInfo', function(req, res) {
     if (results[0] === undefined) {
       data.message = '此店家無場地資料'
       data.firm_id = req.session.userSid
-      data.success = true
       res.json(data)
     } else {
       data.body = results[0]
@@ -424,7 +455,6 @@ router.post('/avatarUpdate', upload.array('file'), function(req, res) {
 //新增
 router.post('/insertAccount', upload.array('files'), function(req, res) {
   const data = { success: false, message: '' }
-
   //地址轉換經緯度
   let url =
     'https://maps.googleapis.com/maps/api/geocode/json?address=' +

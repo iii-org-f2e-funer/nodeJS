@@ -18,9 +18,9 @@ server.listen(8080, () => {
 io.on('connection', function(socket) {
   let id = socket.id
   console.log('socketID', id)
-  socket.on("confirm",obj=>{
+  socket.on('confirm', obj => {
     console.log(obj)
-    io.emit("confirm",obj)
+    io.emit('confirm', obj)
   })
   socket.on('join', data => {
     console.log(data)
@@ -59,7 +59,7 @@ bluebird.promisifyAll(db)
 router.get('/message/:user_id', (req, res) => {
   console.log('req id:', req.params.user_id)
   db.queryAsync({
-    sql: `SELECT h.*,x.name x_fromname,y.name y_toname, x.photo photoFROM_URL, y.photo photoTO_URL FROM (SELECT * FROM chat_header WHERE from_id=${
+    sql: `SELECT h.*,x.nickname x_fromname,y.nickname y_toname, x.photo photoFROM_URL, y.photo photoTO_URL FROM (SELECT * FROM chat_header WHERE from_id=${
       req.params.user_id
     } OR to_id=${
       req.params.user_id
@@ -89,9 +89,13 @@ router.get('/openMemberPage/:to_id', (req, res) => {
   console.log('req id:', req.params.to_id)
   var OMPdata = []
   db.queryAsync({
-    sql: `SELECT m.nickname nickname, m.birthday birthday, m.gender gender, m.city location, m.intro about, m.photo photoURL FROM (SELECT * FROM member WHERE member_id=${
+    sql: `SELECT m.nickname nickname, m.birthday birthday, m.gender gender, m.city location, m.intro about, m.photo photoURL, COUNT(friend_list.status) AS friendTotal FROM (SELECT * FROM member WHERE member_id=${
       req.params.to_id
-    }) as m `,
+    } ) as m JOIN friend_list ON((friend_list.user_id=${
+      req.params.to_id
+    } || friend_list.friend_id=${
+      req.params.to_id
+    })&&friend_list.status="approve")`,
     timeout: 40000, // 40s
   }).then(data => {
     let birthYear = parseInt(moment(data[0].birthday).format('YYYY'))
@@ -106,7 +110,19 @@ router.get('/openMemberPage/:to_id', (req, res) => {
       OMPdata = [game[0], ...OMPdata]
       console.log(game[0])
       console.log('OMP', OMPdata)
-      res.json(OMPdata)
+
+      //pt_num
+      db.queryAsync({
+        sql: `SELECT COUNT(p.pt_applystatus) as pt_conut FROM (SELECT * FROM member WHERE member_id=${
+          req.params.to_id
+        }) as m JOIN party_apply as p ON((p.pt_applymember=m.account||p.pt_host=m.account) && p.pt_applystatus="approve") `,
+        timeout: 40000, // 40s
+      }).then(pt_num => {
+        OMPdata = [...OMPdata, pt_num[0]]
+        console.log(pt_num[0])
+        console.log('OMP', OMPdata)
+        res.json(OMPdata)
+      })
     })
   })
 })
@@ -115,7 +131,7 @@ router.get('/message/:user_id/:to_id', (req, res) => {
   console.log('req id:', req.params.user_id)
   console.log('to id:', req.params.to_id)
   db.queryAsync({
-    sql: `SELECT h.id h_id,h.create_time h_stime, m.id m_id, m.content m_cont, m.sender_id m_sender_id,m.receiver_id m_receiver_id, m.time m_time, x.name x_name, x.photo photoFROM_URL FROM(SELECT * FROM chat_header WHERE from_id=${
+    sql: `SELECT h.id h_id,h.create_time h_stime, m.id m_id, m.content m_cont, m.sender_id m_sender_id,m.receiver_id m_receiver_id, m.time m_time, x.nickname x_name, x.photo photoFROM_URL FROM(SELECT * FROM chat_header WHERE from_id=${
       req.params.user_id
     } OR to_id=${
       req.params.user_id
@@ -130,7 +146,7 @@ router.get('/message/:user_id/:to_id', (req, res) => {
       arr[index].m_time = moment(ele.m_time).format('YYYY-MM-DD, HH:mm:ss')
       arr[index].h_stime = moment(ele.h_stime).format('YYYY-MM-DD, HH:mm:ss')
     })
-    // console.log(data)
+    console.log(data)
     res.json(data)
     // error will be an Error if one occurred during the query
     // results will contain the results of the query
@@ -145,7 +161,7 @@ router.get('/friendList/:user_id', (req, res) => {
   let reqID = req.params.user_id
   console.log('req id:', reqID)
   db.queryAsync({
-    sql: `SELECT f.*, x.name user_name,y.name friend_name, x.photo photoFROM_URL, y.photo photoTO_URL FROM(SELECT * FROM friend_list where user_id=${reqID} OR friend_id=${reqID}) as f JOIN member x ON(f.user_id=x.member_id) JOIN member y ON (f.friend_id=y.member_id) `,
+    sql: `SELECT f.*, x.nickname user_name,y.nickname friend_name, x.photo photoFROM_URL, y.photo photoTO_URL FROM(SELECT * FROM friend_list where user_id=${reqID} OR friend_id=${reqID}) as f JOIN member x ON(f.user_id=x.member_id) JOIN member y ON (f.friend_id=y.member_id) `,
     timeout: 40000, // 40s
   }).then(data => {
     let friendData = []
@@ -164,123 +180,163 @@ router.get('/friendList/:user_id', (req, res) => {
       friendData = [friendList, ...friendData]
     })
     console.log('FriendData:', friendData)
-    res.json([data,friendData])
+    res.json([data, friendData])
   })
 })
 //POST FriendList
 router.post('/friendList/:to_id', (req, res) => {
   var user_id = req.body.applicant
   var toID = req.params.to_id
-  const content = `您收到${user_id}的交友邀請` //內文
-  const link = '/chatroom/openMemberPage/ID'+user_id //通知點下去要連到哪
+  //內文
+  const link = '/chatroom/openMemberPage/ID' + user_id //通知點下去要連到哪
   const img = 'http://localhost:3002/public/images/event/002.jpg' //圖片網址
 
-  db.queryAsync({
-    sql: `SELECT * FROM friend_list WHERE (user_id=${user_id} OR user_id=${toID}) && (friend_id=${toID} OR friend_id=${user_id}) `,
-    timeout: 40000, // 40s
-  }).then(data => {
-    if (!data[0]) {
-      db.queryAsync('INSERT INTO `friend_list` SET ? ', {
-        user_id: user_id,
-        friend_id: toID,
-        status: 'review',
-      }).then(result => {
-        if (result.affectedRows === 1) {
-          console.log('insert data success')
-         
-          //--------------給一般會員的通知----------------------------------------------
-          // query
-          var noticeSql =
-            'INSERT INTO `member_notice`(`member_id`,`send_id`, `content`, `link`, `img`) VALUES (?,?,?,?,?)'
-          db.query(
-            noticeSql,
-            [toID, user_id, content, link, img],
-            (error, results, fields) => {
-              if (!error) {
-                // dosomething
-                res.json({insert:"OK", success: true })
-              } else {
-                res.json({insert:"OK", success: false })
-              }
+  db.queryAsync(`SELECT nickname FROM member WHERE member_id=${user_id}`).then(
+    data => {
+      var content = `您收到${data[0].nickname}的交友邀請`
+      db.queryAsync({
+        sql: `SELECT * FROM friend_list WHERE (user_id=${user_id} OR user_id=${toID}) && (friend_id=${toID} OR friend_id=${user_id}) `,
+        timeout: 40000, // 40s
+      }).then(data => {
+        if (!data[0]) {
+          db.queryAsync('INSERT INTO `friend_list` SET ? ', {
+            user_id: user_id,
+            friend_id: toID,
+            status: 'review',
+          }).then(result => {
+            if (result.affectedRows === 1) {
+              console.log('insert data success')
+
+              //--------------給一般會員的通知----------------------------------------------
+              // query
+              var noticeSql =
+                'INSERT INTO `member_notice`(`member_id`,`send_id`, `content`, `link`, `img`) VALUES (?,?,?,?,?)'
+              db.query(
+                noticeSql,
+                [toID, user_id, content, link, img],
+                (error, results, fields) => {
+                  if (!error) {
+                    // dosomething
+                    res.json({ insert: 'OK', success: true })
+                  } else {
+                    res.json({ insert: 'OK', success: false })
+                  }
+                }
+              )
             }
-          )
-        }
-      })
-    } else if (data[0].status == 'review' && req.body.action=="cancel") {
-      //UPDATE
-      console.log("bodyaction",req.body.action)
-      db.queryAsync(
-        `DELETE from friend_list  WHERE sid = ${data[0].sid}`,
-        
-      ).then(result => {
-        console.log("changeRows",result.changedRows)
-        if (result.changedRows == 0) {
-          console.log('DELETE SUCCESS')
-         
-          //DELETE notice
-          var delNotice =
-          `DELETE FROM member_notice WHERE (member_id=${toID} || send_id=${toID}) && (send_id=${user_id} || member_id=${user_id})`
-        db.query(
-          delNotice,
-          (error, results, fields) => {
-            if (!error) {
-              // dosomething
-              res.json({UPDATEDEL:"OK", success: true })
-            } else {
-              res.json({UPDATEDEL:"OK", success: false })
+          })
+        } else if (data[0].status == 'review' && req.body.action == 'cancel') {
+          //UPDATE
+          console.log('bodyaction', req.body.action)
+          db.queryAsync(
+            `DELETE from friend_list  WHERE sid = ${data[0].sid}`
+          ).then(result => {
+            console.log('changeRows', result.changedRows)
+            if (result.changedRows == 0) {
+              console.log('DELETE SUCCESS')
+
+              //DELETE notice
+              var delNotice = `DELETE FROM member_notice WHERE (member_id=${toID} || send_id=${toID}) && (send_id=${user_id} || member_id=${user_id})`
+              db.query(delNotice, (error, results, fields) => {
+                if (!error) {
+                  // dosomething
+                  res.json({ UPDATEDEL: 'OK', success: true })
+                } else {
+                  res.json({ UPDATEDEL: 'OK', success: false })
+                }
+              })
             }
-          }
-        )
-        }
-      })
-    } else if (data[0].status == 'delete') {
-      db.queryAsync(
-        `UPDATE friend_list SET  status = ? WHERE sid = ${data[0].sid}`,
-        ['review']
-      ).then(result => {
-        if (result.changedRows >= 1) {
-          console.log('UPDATE SUCCESS')
-         
-          //--------------給一般會員的通知----------------------------------------------
-          // query
-          var noticeSql =
-            'INSERT INTO `member_notice`(`member_id`,`send_id`, `content`, `link`, `img`) VALUES (?,?,?,?,?)'
-          db.query(
-            noticeSql,
-            [toID, user_id, content, link, img],
-            (error, results, fields) => {
-              if (!error) {
-                // dosomething
-                res.json({UPDATErev:"OK", success: true })
-              } else {
-                res.json({UPDATErev:"OK", success: false })
-              }
+          })
+        } else if (data[0].status == 'delete') {
+          db.queryAsync(
+            `UPDATE friend_list SET  status = ? WHERE sid = ${data[0].sid}`,
+            ['review']
+          ).then(result => {
+            if (result.changedRows >= 1) {
+              console.log('UPDATE SUCCESS')
+
+              //--------------給一般會員的通知----------------------------------------------
+              // query
+              var noticeSql =
+                'INSERT INTO `member_notice`(`member_id`,`send_id`, `content`, `link`, `img`) VALUES (?,?,?,?,?)'
+              db.query(
+                noticeSql,
+                [toID, user_id, content, link, img],
+                (error, results, fields) => {
+                  if (!error) {
+                    // dosomething
+                    res.json({ UPDATErev: 'OK', success: true })
+                  } else {
+                    res.json({ UPDATErev: 'OK', success: false })
+                  }
+                }
+              )
             }
-          )
-        }
-      })
-    }else if(data[0].status=="review" && req.body.action=="confirm"){
-      db.queryAsync(
-        `UPDATE friend_list SET  status = ? WHERE sid = ${data[0].sid}`,
-        ['approve']
-      ).then(result => {
-        if (result.changedRows >= 1) {
-          console.log('UPDATE SUCCESS')
-          res.json({UPDATEapprove:"OK" })
+          })
+        } else if (data[0].status == 'review' && req.body.action == 'confirm') {
+          db.queryAsync(
+            `UPDATE friend_list SET  status = ? WHERE sid = ${data[0].sid}`,
+            ['approve']
+          ).then(result => {
+            if (result.changedRows >= 1) {
+              console.log('UPDATE SUCCESS')
+              res.json({ UPDATEapprove: 'OK' })
+            }
+          })
         }
       })
     }
-  })
+  )
+
   //
 })
 
 //POST DATA
+
+//check if chat_header is null
+router.post('/chat_headerInsert/:user_id/:to_id', (req, res) => {
+  let bodyData = req.body
+  // db.queryAsync(
+  //   `SELECT count(*) headerCount FROM chat_header WHERE ((from_id=${
+  //     req.params.user_id
+  //   } || from_id=${req.params.to_id}) && (to_id=${req.params.to_id} || to_id=${
+  //     req.params.user_id
+  //   }))`
+  // ).then(count => {
+    // if (count[0].headerCount == false) {
+      db.queryAsync('INSERT INTO `chat_header` SET ? ', {
+        from_id: bodyData.applicant,
+        to_id: bodyData.addFriendId,
+        subject: null,
+        time: bodyData.time,
+        create_time: bodyData.create_time,
+      }).then(result => {
+        console.log('addheader')
+        res.json('addchatHeaderOK')
+      })
+    // }
+  // })
+})
+
+//post message
 router.post('/message/:user_id/:to_id', (req, res) => {
   console.log('req id:', req.params.user_id)
+  console.log('req id:', req.params.to_id)
   let bodyData = req.body
   console.log('check post', req.body)
   // console.log(bodyData)
   console.log('postms', bodyData.msec)
+
+  // uid: this.state.from_u_id,
+  //       to_uid: this.state.to_u_id,
+  //       username: this.state.from_member_name,
+  //       message: inputContent,
+  //       time: this.generateTime(),
+  //       msec: new Date().getTime(),
+  //       roomID: this.state.roomID,
+  //       h_id: this.state.member_chat_data[0].h_id,
+  //       is_readed: 0,
+  //       urlSender: this.props.photoURL,
 
   db.queryAsync(
     'SELECT `m_sec` FROM `chat_message` ORDER BY `time` DESC LIMIT 1'
