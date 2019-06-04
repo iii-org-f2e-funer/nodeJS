@@ -110,17 +110,18 @@ router.get('/openMemberPage/:to_id', (req, res) => {
       OMPdata = [game[0], ...OMPdata]
       console.log(game[0])
       console.log('OMP', OMPdata)
-   
+
       //pt_num
       db.queryAsync({
-        sql: `SELECT COUNT(p.pt_applystatus) as pt_conut FROM (SELECT * FROM member WHERE member_id=${req.params.to_id}) as m JOIN party_apply as p ON((p.pt_applymember=m.account||p.pt_host=m.account) && p.pt_applystatus="approve") `,
+        sql: `SELECT COUNT(p.pt_applystatus) as pt_conut FROM (SELECT * FROM member WHERE member_id=${
+          req.params.to_id
+        }) as m JOIN party_apply as p ON((p.pt_applymember=m.account||p.pt_host=m.account) && p.pt_applystatus="approve") `,
         timeout: 40000, // 40s
       }).then(pt_num => {
-        OMPdata = [ ...OMPdata, pt_num[0]]
+        OMPdata = [...OMPdata, pt_num[0]]
         console.log(pt_num[0])
         console.log('OMP', OMPdata)
         res.json(OMPdata)
-        
       })
     })
   })
@@ -295,21 +296,27 @@ router.post('/friendList/:to_id', (req, res) => {
 //check if chat_header is null
 router.post('/chat_headerInsert/:user_id/:to_id', (req, res) => {
   let bodyData = req.body
-db.queryAsync(`SELECT count(*) headerCount FROM chat_header WHERE ((from_id=${req.params.user_id} || from_id=${req.params.to_id}) && (to_id=${req.params.to_id} || to_id=${req.params.user_id}))`)
-.then(count=>{
-  if(count[0].headerCount==false){
-    db.queryAsync('INSERT INTO `chat_header` SET ? ', {
-      from_id: bodyData.applicant,
-      to_id: bodyData.addFriendId,
-      subject: null,
-      time: bodyData.time,
-      create_time: bodyData.create_time,
-    }).then(result=>{console.log("addheader")
-  res.json("addchatHeaderOK")})
-  }
+  db.queryAsync(
+    `SELECT count(*) headerCount FROM chat_header WHERE ((from_id=${
+      req.params.user_id
+    } || from_id=${req.params.to_id}) && (to_id=${req.params.to_id} || to_id=${
+      req.params.user_id
+    }))`
+  ).then(count => {
+    // if (count[0].headerCount == false) {
+      db.queryAsync('INSERT INTO `chat_header` SET ? ', {
+        from_id: bodyData.applicant,
+        to_id: bodyData.addFriendId,
+        subject: null,
+        time: bodyData.time,
+        create_time: bodyData.create_time,
+      }).then(result => {
+        console.log('addheader')
+        res.json('addchatHeaderOK')
+      })
+    // }
+  })
 })
-})
-
 
 //post message
 router.post('/message/:user_id/:to_id', (req, res) => {
@@ -319,7 +326,6 @@ router.post('/message/:user_id/:to_id', (req, res) => {
   console.log('check post', req.body)
   // console.log(bodyData)
   console.log('postms', bodyData.msec)
-
 
   // uid: this.state.from_u_id,
   //       to_uid: this.state.to_u_id,
@@ -332,8 +338,6 @@ router.post('/message/:user_id/:to_id', (req, res) => {
   //       is_readed: 0,
   //       urlSender: this.props.photoURL,
 
-  
- 
   db.queryAsync(
     'SELECT `m_sec` FROM `chat_message` ORDER BY `time` DESC LIMIT 1'
   ).then(old_data_ms => {
