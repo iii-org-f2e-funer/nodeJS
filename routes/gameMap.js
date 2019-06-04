@@ -269,14 +269,14 @@ router.post('/reservation', (req, res) => {
 	let query = db.query(sql, initData, (error, results, fields) => {
 		if (error) throw error;
 		if (results.affectedRows === 1) {
-			const member_id = req.session.userSid; //收信人 會員 membet_id
+			const firm_id = req.body.firm_id; //收信人 會員 membet_id
 			const content = 'FUNer場地預約訂單已送出!!'; //內文
 			const link = '/firm/site_order'; //通知點下去要連到哪
 			const img = ''; //圖片網址
 
 			// query
-			var sql2 = 'INSERT INTO `member_notice`(`member_id`, `content`, `link`, `img`) VALUES (?,?,?,?)';
-			db.query(sql2, [ member_id, content, link, img ], (error, results, fields) => {
+			var sql2 = 'INSERT INTO `firm_notice`(`firm_id`, `content`, `link`, `img`) VALUES (?,?,?,?)';
+			db.query(sql2, [ firm_id, content, link, img ], (error, results, fields) => {
 				if (!error) {
 					// dosomething
 					res.json({ success: true });
