@@ -269,6 +269,22 @@ router.post('/reservation', (req, res) => {
 	let query = db.query(sql, initData, (error, results, fields) => {
 		if (error) throw error;
 		if (results.affectedRows === 1) {
+			const member_id = req.body.userId; //收信人 會員 membet_id
+			const content = 'FUNer場地預約訂單已送出!!'; //內文
+			const link = 'http://13.112.90.13/firm/site_order'; //通知點下去要連到哪
+			const img = ''; //圖片網址
+
+			// query
+			var sql2 = 'INSERT INTO `member_notice`(`member_id`, `content`, `link`, `img`) VALUES (?,?,?,?)';
+			db.query(sql2, [ member_id, content, link, img ], (error, results, fields) => {
+				if (!error) {
+					// dosomething
+					res.json({ success: true });
+				} else {
+					res.json({ success: false });
+				}
+			});
+
 			// console.log(req.body);
 			date = new Date(req.body.date);
 			year = date.getFullYear();
