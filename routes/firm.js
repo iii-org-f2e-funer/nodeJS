@@ -207,7 +207,7 @@ router.post('/checkCode', function(req, res) {
 // login code info
 router.post('/codeInfo', upload.array('files'), function(req, res) {
   const data = { success: false, message: '' }
-  if (!req.files.length) {
+  if (req.files[0] === undefined) {
     let sql = 'UPDATE `firm_manage` SET ? WHERE `sid` = ?'
     db.query(
       sql,
@@ -219,7 +219,6 @@ router.post('/codeInfo', upload.array('files'), function(req, res) {
           dist: req.body.dist,
           address: req.body.address,
           contacter: req.body.contacter,
-          my_file: req.files[0].filename,
         },
         req.body.sid,
       ],
@@ -249,6 +248,7 @@ router.post('/codeInfo', upload.array('files'), function(req, res) {
           dist: req.body.dist,
           address: req.body.address,
           contacter: req.body.contacter,
+          my_file: req.files[0].filename,
         },
         req.body.sid,
       ],
