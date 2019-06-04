@@ -295,7 +295,7 @@ router.post('/friendList/:to_id', (req, res) => {
 //check if chat_header is null
 router.post('/chat_headerInsert/:user_id/:to_id', (req, res) => {
   let bodyData = req.body
-db.queryAsync(`SELECT count(*) headerCount FROM chat_header WHERE ((from_id=${req.params.user_id} || from_id=${req.params.user_id}) || (to_id=${req.params.to_id} || to_id=${req.params.to_id} ))`)
+db.queryAsync(`SELECT count(*) headerCount FROM chat_header WHERE ((from_id=${req.params.user_id} || from_id=${req.params.user_id}) && (to_id=${req.params.to_id} || to_id=${req.params.to_id} ))`)
 .then(count=>{
   if(count[0].headerCount==0){
     db.queryAsync('INSERT INTO `chat_header` SET ? ', {
