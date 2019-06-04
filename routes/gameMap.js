@@ -8,6 +8,8 @@ const session = require('express-session');
 const app = express();
 const router = express.Router();
 
+const moment = require('moment');
+
 const db = require('../utility/db.js');
 const cityCodeToString = require('./gameMapSql.js');
 
@@ -247,6 +249,8 @@ router.get('/test', (req, res) => {
 router.post('/reservation', (req, res) => {
 	// console.log(req.session);
 	console.log(req.body.date);
+	sqlDate = `${moment(req.body.date).format('YYYY-MM-DD HH:mm:ss')}+`;
+
 	let initData = [
 		req.body.userId,
 		req.body.firm_id,
