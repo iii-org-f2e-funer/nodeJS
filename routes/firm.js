@@ -249,6 +249,7 @@ router.post('/codeInfo', upload.array('files'), function(req, res) {
           dist: req.body.dist,
           address: req.body.address,
           contacter: req.body.contacter,
+          my_file: '',
         },
         req.body.sid,
       ],
