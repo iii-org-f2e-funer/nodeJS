@@ -145,7 +145,7 @@ router.get('/message/:user_id/:to_id', (req, res) => {
       arr[index].m_time = moment(ele.m_time).format('YYYY-MM-DD, HH:mm:ss')
       arr[index].h_stime = moment(ele.h_stime).format('YYYY-MM-DD, HH:mm:ss')
     })
-    // console.log(data)
+    console.log(data)
     res.json(data)
     // error will be an Error if one occurred during the query
     // results will contain the results of the query
@@ -291,13 +291,47 @@ router.post('/friendList/:to_id', (req, res) => {
 })
 
 //POST DATA
+
+//check if chat_header is null
+router.post('/chat_headerInsert/:user_id/:to_id', (req, res) => {
+db.queryAsync(`SELECT count(*) headerCount FROM chat_header WHERE ((from_id=${req.params.user_id} || from_id=${req.params.user_id}) || (to_id=${req.params.to_id} || to_id=${req.params.to_id} ))`)
+.then(count=>{
+  if(count[0].headerCount==0){
+    db.queryAsync('INSERT INTO `chat_header` SET ? ', {
+      from_id: bodyData.applicant,
+      to_id: bodyData.addFriendId,
+      subject: null,
+      time: bodyData.time,
+      create_time: bodyData.create_time,
+      m_sec: bodyData.m_sec,
+    })
+  }
+})
+
+
+//post message
 router.post('/message/:user_id/:to_id', (req, res) => {
   console.log('req id:', req.params.user_id)
+  console.log('req id:', req.params.to_id)
   let bodyData = req.body
   console.log('check post', req.body)
   // console.log(bodyData)
   console.log('postms', bodyData.msec)
 
+
+  // uid: this.state.from_u_id,
+  //       to_uid: this.state.to_u_id,
+  //       username: this.state.from_member_name,
+  //       message: inputContent,
+  //       time: this.generateTime(),
+  //       msec: new Date().getTime(),
+  //       roomID: this.state.roomID,
+  //       h_id: this.state.member_chat_data[0].h_id,
+  //       is_readed: 0,
+  //       urlSender: this.props.photoURL,
+
+  
+ 
   db.queryAsync(
     'SELECT `m_sec` FROM `chat_message` ORDER BY `time` DESC LIMIT 1'
   ).then(old_data_ms => {
